@@ -362,7 +362,7 @@
       <div class="hud-stats">
         <div class="stat-pill score">🏃 <span id="scoreText">0</span>m</div>
         <div class="stat-pill best">🏆 <span id="bestText">0</span>m</div>
-        <div class="stat-pill coins">🪙 <span id="coinsText">0</span></div>
+        <div class="stat-pill coins">🔴 精靈球：<span id="coinsText">0</span></div>
       </div>
       <div class="hud-actions">
         <button class="icon-btn qr-btn" id="qrOpenBtn">📱 手機掃碼玩</button>
@@ -379,13 +379,17 @@
 
       <!-- Main Menu / GameOver Overlay -->
       <div class="overlay" id="menuOverlay">
-        <div class="game-title" id="overlayTitle">⚡ Alfie & Darren 單車酷跑</div>
+        <div class="game-title" id="overlayTitle">⚡ Alfie & Darren 寶可夢單車酷跑</div>
         <p class="game-sub" id="overlayDesc">
-          選擇 <b>🔴 Alfie（紅車）</b>、<b>🟢 Darren（綠車）</b> 或 <b>👬 雙人同屏戰隊</b>！<br />
-          支援二段跳、滑行閃避無人機與無敵衝刺，撿取 🛡️護盾、🧲磁鐵、🚀噴射背包衝破極限！
+          選擇小騎士與專屬<b>寶可夢風格夥伴</b>一起出擊！<br />
+          沿途收集 🔴⚪ 精靈球，發動十萬伏特、噴射火焰與飛水手裏劍衝破極限！
         </p>
 
-        <div class="skin-grid" id="skinGrid"></div>
+        <div style="font-size:0.75rem;color:#38bdf8;font-weight:800;margin-bottom:4px;">🚴‍♂️ 選擇出戰小騎士：</div>
+        <div class="skin-grid" id="skinGrid" style="margin-bottom:10px;"></div>
+
+        <div style="font-size:0.75rem;color:#fbbf24;font-weight:800;margin-bottom:4px;">⚡ 選擇寶可夢風格夥伴（隨行助戰）：</div>
+        <div class="skin-grid" id="pokeGrid" style="margin-bottom:14px;"></div>
 
         <button class="start-btn" id="startBtn">🚀 點擊立即開跑</button>
       </div>
@@ -487,9 +491,17 @@
       { id: "photo", name: "寫真原圖模式", color: "#f59e0b", badge: "📸 全身寫真" }
     ];
 
+    const POKE_PARTNERS = [
+      { id: "pika", name: "閃電皮卡", color: "#facc15", move: "⚡ 十萬伏特", icon: "⚡🐭" },
+      { id: "dragon", name: "噴火飛龍", color: "#f97316", move: "🔥 噴射火焰", icon: "🔥🐲" },
+      { id: "frog", name: "甲賀水蛙", color: "#06b6d4", move: "💧 飛水手裏劍", icon: "💧🐸" },
+      { id: "mew", name: "超夢幻神獸", color: "#e879f9", move: "🌟 精神強念", icon: "✨🔮" }
+    ];
+
     let totalCoins = Number(localStorage.getItem("neonRunnerCoins") || 0);
     let bestScore = Number(localStorage.getItem("neonRunnerBest") || 0);
     let currentSkinId = localStorage.getItem("neonRunnerHeroMode") || "duo";
+    let currentPokeId = localStorage.getItem("neonRunnerPokePartner") || "pika";
 
     const scoreText = document.getElementById("scoreText");
     const bestText = document.getElementById("bestText");
@@ -499,6 +511,7 @@
     const overlayTitle = document.getElementById("overlayTitle");
     const overlayDesc = document.getElementById("overlayDesc");
     const skinGrid = document.getElementById("skinGrid");
+    const pokeGrid = document.getElementById("pokeGrid");
     const startBtn = document.getElementById("startBtn");
     const buffBar = document.getElementById("buffBar");
     const pauseBtn = document.getElementById("pauseBtn");
@@ -509,6 +522,10 @@
     function updateHUD() {
       bestText.textContent = Math.floor(bestScore);
       coinsText.textContent = totalCoins;
+    }
+
+    function getPokePartner() {
+      return POKE_PARTNERS.find((p) => p.id === currentPokeId) || POKE_PARTNERS[0];
     }
 
     function renderSkinShop() {
@@ -553,6 +570,28 @@
         });
         skinGrid.appendChild(card);
       });
+
+      if (pokeGrid) {
+        pokeGrid.innerHTML = "";
+        POKE_PARTNERS.forEach((p) => {
+          const isSelected = currentPokeId === p.id;
+          const card = document.createElement("div");
+          card.className = `skin-card ${isSelected ? "selected" : ""}`;
+          card.style.borderColor = isSelected ? p.color : "#334155";
+          card.innerHTML = `
+            <div style="font-size:1.5rem;margin-bottom:3px;">${p.icon}</div>
+            <div class="skin-name" style="color:${p.color};">${p.name}</div>
+            <div class="skin-cost" style="color:#fde047;">${isSelected ? `✅ ${p.move}` : p.move}</div>
+          `;
+          card.addEventListener("click", () => {
+            currentPokeId = p.id;
+            localStorage.setItem("neonRunnerPokePartner", currentPokeId);
+            sfx("powerup");
+            renderSkinShop();
+          });
+          pokeGrid.appendChild(card);
+        });
+      }
     }
 
     // ====== Game Engine ======
@@ -667,7 +706,7 @@
         player.vy = player.jumpCount === 0 ? -14.2 : -12.6;
         player.jumpCount++;
         sfx(player.jumpCount === 1 ? "jump" : "doubleJump");
-        spawnParticles(player.x + player.w / 2, player.y + player.h, getSkin().color, 10);
+        spawnParticles(player.x + player.w / 2, player.y + player.h, getPokePartner().color, 14);
       }
     }
 
@@ -959,15 +998,221 @@
         ctx.strokeRect(p.x, p.y, p.w, p.h);
       });
 
+      // Draw Pokéball Collectibles
       coins.forEach((c) => {
+        ctx.save();
+        ctx.translate(c.x, c.y);
+        ctx.rotate(frameCount * 0.06);
+        // Bottom white half
         ctx.beginPath();
-        ctx.arc(c.x, c.y, c.r, 0, Math.PI * 2);
-        ctx.fillStyle = "#fbbf24";
+        ctx.arc(0, 0, c.r, 0, Math.PI * 2);
+        ctx.fillStyle = "#f8fafc";
         ctx.fill();
-        ctx.strokeStyle = "#fef08a";
-        ctx.lineWidth = 2;
+        // Top red half
+        ctx.beginPath();
+        ctx.arc(0, 0, c.r, Math.PI, 0);
+        ctx.fillStyle = "#ef4444";
+        ctx.fill();
+        // Center black belt & outer rim
+        ctx.strokeStyle = "#0f172a";
+        ctx.lineWidth = 2.2;
+        ctx.beginPath();
+        ctx.arc(0, 0, c.r, 0, Math.PI * 2);
+        ctx.moveTo(-c.r, 0);
+        ctx.lineTo(c.r, 0);
         ctx.stroke();
+        // Center button
+        ctx.beginPath();
+        ctx.arc(0, 0, 3.6, 0, Math.PI * 2);
+        ctx.fillStyle = "#ffffff";
+        ctx.fill();
+        ctx.stroke();
+        ctx.restore();
       });
+
+      function drawPokeCompanion(px, py, pokeId) {
+        const hover = Math.sin(frameCount * 0.22) * 3.5;
+        ctx.save();
+        ctx.translate(px, py + hover);
+
+        if (pokeId === "pika") {
+          // ⚡ Electric Yellow Mouse (Pika Style)
+          // Lightning bolt tail
+          ctx.fillStyle = "#facc15";
+          ctx.strokeStyle = "#ca8a04";
+          ctx.lineWidth = 1.5;
+          ctx.beginPath();
+          ctx.moveTo(-8, 4);
+          ctx.lineTo(-16, -2);
+          ctx.lineTo(-12, -5);
+          ctx.lineTo(-21, -13);
+          ctx.lineTo(-9, -8);
+          ctx.lineTo(-12, -4);
+          ctx.closePath();
+          ctx.fill();
+          ctx.stroke();
+
+          // Long ears with black tips
+          const earBounce = Math.sin(frameCount * 0.3) * 0.12;
+          [-5, 5].forEach((ex, idx) => {
+            ctx.save();
+            ctx.translate(ex, -10);
+            ctx.rotate((idx === 0 ? -0.35 : 0.25) + earBounce);
+            ctx.fillStyle = "#fde047";
+            ctx.beginPath();
+            ctx.ellipse(0, -6, 3.2, 8, 0, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = "#0f172a";
+            ctx.beginPath();
+            ctx.ellipse(0, -11, 2.4, 3.5, 0, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.restore();
+          });
+
+          // Round yellow body/head
+          ctx.shadowColor = "#facc15";
+          ctx.shadowBlur = 10;
+          ctx.fillStyle = "#fde047";
+          ctx.beginPath();
+          ctx.arc(0, -2, 11, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.shadowBlur = 0;
+
+          // Red electric cheeks
+          ctx.fillStyle = "#ef4444";
+          ctx.beginPath();
+          ctx.arc(-6, 1, 3, 0, Math.PI * 2);
+          ctx.arc(7, 1, 3, 0, Math.PI * 2);
+          ctx.fill();
+
+          // Cute eyes
+          ctx.fillStyle = "#0f172a";
+          ctx.beginPath();
+          ctx.arc(-3.5, -4, 2, 0, Math.PI * 2);
+          ctx.arc(5.5, -4, 2, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.fillStyle = "#ffffff";
+          ctx.beginPath();
+          ctx.arc(-4, -4.7, 0.8, 0, Math.PI * 2);
+          ctx.arc(5, -4.7, 0.8, 0, Math.PI * 2);
+          ctx.fill();
+        } else if (pokeId === "dragon") {
+          // 🔥 Flame Dragon (Char Style)
+          const wingFlap = Math.sin(frameCount * 0.35) * 6;
+          // Wings
+          ctx.fillStyle = "#0d9488";
+          ctx.strokeStyle = "#f97316";
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.moveTo(-4, -4);
+          ctx.lineTo(-16, -16 + wingFlap);
+          ctx.lineTo(-6, -12 + wingFlap * 0.5);
+          ctx.closePath();
+          ctx.fill();
+          ctx.stroke();
+
+          // Tail with blazing flame
+          ctx.strokeStyle = "#f97316";
+          ctx.lineWidth = 4;
+          ctx.beginPath();
+          ctx.moveTo(-6, 4);
+          ctx.quadraticCurveTo(-18, 6, -19, -4);
+          ctx.stroke();
+          ctx.fillStyle = frameCount % 4 < 2 ? "#ef4444" : "#facc15";
+          ctx.beginPath();
+          ctx.arc(-19, -7, 4.5, 0, Math.PI * 2);
+          ctx.fill();
+
+          // Dragon Head & Body
+          ctx.shadowColor = "#f97316";
+          ctx.shadowBlur = 10;
+          ctx.fillStyle = "#fb923c";
+          ctx.beginPath();
+          ctx.arc(0, -2, 11, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.shadowBlur = 0;
+
+          // Cream belly
+          ctx.fillStyle = "#fef08a";
+          ctx.beginPath();
+          ctx.arc(2, 2, 6.5, 0, Math.PI * 2);
+          ctx.fill();
+
+          // Fierce eyes
+          ctx.fillStyle = "#0f172a";
+          ctx.beginPath();
+          ctx.arc(4, -5, 2.2, 0, Math.PI * 2);
+          ctx.fill();
+        } else if (pokeId === "frog") {
+          // 💧 Aqua Ninja Frog (Greninja Style)
+          // Flowing pink scarf-tongue
+          const wave = Math.sin(frameCount * 0.3) * 4;
+          ctx.strokeStyle = "#f472b6";
+          ctx.lineWidth = 4.5;
+          ctx.lineCap = "round";
+          ctx.beginPath();
+          ctx.moveTo(0, 1);
+          ctx.quadraticCurveTo(-14, -4 + wave, -22, 2 - wave);
+          ctx.stroke();
+
+          // Blue ninja head
+          ctx.shadowColor = "#06b6d4";
+          ctx.shadowBlur = 10;
+          ctx.fillStyle = "#0284c7";
+          ctx.beginPath();
+          ctx.arc(0, -3, 10.5, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.shadowBlur = 0;
+
+          // Spinning Water Shuriken in front
+          ctx.save();
+          ctx.translate(14, -2);
+          ctx.rotate(frameCount * 0.35);
+          ctx.fillStyle = "#22d3ee";
+          for (let i = 0; i < 4; i++) {
+            ctx.beginPath();
+            ctx.moveTo(0, -8);
+            ctx.lineTo(2.5, 0);
+            ctx.lineTo(-2.5, 0);
+            ctx.closePath();
+            ctx.fill();
+            ctx.rotate(Math.PI / 2);
+          }
+          ctx.restore();
+        } else {
+          // ✨ Psychic Myth (Mew Style)
+          const tailWave = Math.cos(frameCount * 0.2) * 5;
+          ctx.strokeStyle = "#f472b6";
+          ctx.lineWidth = 3;
+          ctx.beginPath();
+          ctx.moveTo(-6, 2);
+          ctx.bezierCurveTo(-18, -10, -14, -22 + tailWave, -22, -18 + tailWave);
+          ctx.stroke();
+
+          // Psychic aura ring
+          ctx.strokeStyle = "rgba(232, 121, 249, 0.7)";
+          ctx.lineWidth = 1.8;
+          ctx.beginPath();
+          ctx.arc(0, -2, 15, 0, Math.PI * 2);
+          ctx.stroke();
+
+          ctx.shadowColor = "#e879f9";
+          ctx.shadowBlur = 12;
+          ctx.fillStyle = "#f9a8d4";
+          ctx.beginPath();
+          ctx.arc(0, -2, 10, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.shadowBlur = 0;
+
+          // Big blue psychic eyes
+          ctx.fillStyle = "#0284c7";
+          ctx.beginPath();
+          ctx.arc(4, -3, 2.5, 0, Math.PI * 2);
+          ctx.fill();
+        }
+
+        ctx.restore();
+      }
 
       ctx.font = "24px 'Apple Color Emoji', 'Segoe UI Emoji', 'Noto Color Emoji', sans-serif";
       ctx.textAlign = "center";
@@ -1134,6 +1379,26 @@
         }
         ctx.restore();
 
+        // 4b. Cute Pokémon Trainer Cap on top of head!
+        ctx.save();
+        ctx.translate(headX, headY - headR + 2);
+        // Red crown
+        ctx.fillStyle = isHero1 ? "#ef4444" : "#10b981";
+        ctx.beginPath();
+        ctx.arc(0, 0, 13, Math.PI, 0);
+        ctx.fill();
+        // White front emblem semicircle
+        ctx.fillStyle = "#ffffff";
+        ctx.beginPath();
+        ctx.arc(3, -1, 5.5, Math.PI, 0);
+        ctx.fill();
+        // Cap visor pointing right
+        ctx.fillStyle = "#f8fafc";
+        ctx.beginPath();
+        ctx.ellipse(9, 0, 9, 2.8, 0.1, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+
         // 5. Floating Name Badge (Alfie / Darren)
         const riderName = isHero1 ? "Alfie" : "Darren";
         ctx.save();
@@ -1144,12 +1409,21 @@
         ctx.strokeStyle = bikeColor;
         ctx.lineWidth = 1.5;
         ctx.beginPath();
-        ctx.roundRect(headX - 22, headY - headR - 17, 44, 14, 7);
+        ctx.roundRect(headX - 22, headY - headR - 23, 44, 14, 7);
         ctx.fill();
         ctx.stroke();
         ctx.fillStyle = "#ffffff";
-        ctx.fillText(riderName, headX, headY - headR - 10);
+        ctx.fillText(riderName, headX, headY - headR - 16);
         ctx.restore();
+
+        // 6. Pokémon-Style Companion beside the bike!
+        const partnerToDraw =
+          currentSkinId === "duo" && !isHero1
+            ? currentPokeId === "pika"
+              ? "dragon"
+              : "pika"
+            : currentPokeId;
+        drawPokeCompanion(26, -34, partnerToDraw);
 
         ctx.restore();
       }
