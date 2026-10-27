@@ -9,11 +9,16 @@
   <title>⚡ 霓虹酷跑王 — 手機觸控 & 電腦雙棲版</title>
   <style>
     :root {
-      --bg-dark: #090d16;
-      --primary: #06b6d4;
-      --accent: #f59e0b;
-      --pink: #ec4899;
+      --bg: #070b14;
+      --glass: rgba(15, 23, 42, 0.62);
+      --glass-border: rgba(148, 163, 184, 0.18);
+      --cyan: #22d3ee;
+      --violet: #a78bfa;
+      --pink: #f472b6;
+      --amber: #fbbf24;
+      --red: #ef4444;
       --text: #f8fafc;
+      --muted: #94a3b8;
     }
 
     * {
@@ -24,13 +29,17 @@
       user-select: none;
       -webkit-user-select: none;
       -webkit-touch-callout: none;
+      -webkit-tap-highlight-color: transparent;
       touch-action: manipulation;
     }
 
     html, body {
       width: 100%;
       height: 100dvh;
-      background: radial-gradient(circle at center, #1e1b4b 0%, #090d16 100%);
+      background:
+        radial-gradient(1200px 600px at 20% -10%, rgba(99, 102, 241, 0.25), transparent 60%),
+        radial-gradient(900px 500px at 110% 110%, rgba(236, 72, 153, 0.18), transparent 60%),
+        var(--bg);
       color: var(--text);
       overflow: hidden;
       display: flex;
@@ -40,107 +49,129 @@
 
     .app-wrapper {
       width: 100%;
-      max-width: 900px;
+      max-width: 960px;
       height: 100dvh;
-      max-height: 680px;
-      background: #0f172a;
-      border: 2px solid #334155;
-      border-radius: 24px;
-      box-shadow: 0 25px 70px rgba(0, 0, 0, 0.8), 0 0 35px rgba(6, 182, 212, 0.25);
+      max-height: 700px;
       display: flex;
       flex-direction: column;
-      overflow: hidden;
+      gap: 10px;
+      padding: 10px;
       position: relative;
     }
 
-    /* Mobile Fullscreen adaptation */
     @media (max-width: 768px) {
-      .app-wrapper {
-        max-height: 100dvh;
-        border: none;
-        border-radius: 0;
-      }
+      .app-wrapper { max-height: 100dvh; padding: 8px 8px calc(8px + env(safe-area-inset-bottom, 0px)); }
     }
 
-    /* Top HUD Bar */
-    .hud-bar {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 10px 14px;
-      background: rgba(15, 23, 42, 0.96);
-      border-bottom: 1px solid #1e293b;
-      gap: 8px;
-      flex-shrink: 0;
-    }
-
-    .hud-stats {
-      display: flex;
-      gap: 8px;
-      align-items: center;
-      flex-wrap: wrap;
-    }
-
-    .stat-pill {
-      background: #1e293b;
-      border: 1px solid #334155;
-      padding: 5px 10px;
-      border-radius: 999px;
-      font-size: 0.82rem;
-      font-weight: 800;
-      display: flex;
-      align-items: center;
-      gap: 4px;
-    }
-
-    .stat-pill.score { color: #38bdf8; }
-    .stat-pill.best { color: #a78bfa; }
-    .stat-pill.coins { color: #fbbf24; }
-
-    .hud-actions {
-      display: flex;
-      gap: 6px;
-    }
-
-    .icon-btn {
-      background: #1e293b;
-      border: 1px solid #475569;
-      color: var(--text);
-      padding: 6px 10px;
-      border-radius: 10px;
-      font-size: 0.78rem;
-      font-weight: 700;
-      cursor: pointer;
-    }
-
-    .icon-btn.qr-btn {
-      background: rgba(6, 182, 212, 0.18);
-      border-color: #06b6d4;
-      color: #22d3ee;
-    }
-
-    /* Canvas Area */
+    /* ===== Stage ===== */
     .canvas-wrap {
       position: relative;
-      width: 100%;
       flex: 1;
-      background: #090d16;
-      overflow: hidden;
+      min-height: 0;
       display: flex;
       align-items: center;
       justify-content: center;
+      border-radius: 22px;
+      background: linear-gradient(180deg, #0b1124 0%, #0d1330 100%);
+      border: 1px solid var(--glass-border);
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.55), inset 0 0 0 1px rgba(255, 255, 255, 0.02);
+      overflow: hidden;
     }
 
     canvas {
-      width: 100%;
-      height: 100%;
       display: block;
+      border-radius: 16px;
+      box-shadow: 0 0 0 1px rgba(34, 211, 238, 0.18), 0 10px 40px rgba(34, 211, 238, 0.12);
     }
 
-    /* Active Buffs Indicator */
-    .buff-bar {
+    /* ===== Floating HUD ===== */
+    .hud {
       position: absolute;
       top: 10px;
+      left: 10px;
+      right: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      pointer-events: none;
+      z-index: 10;
+    }
+
+    .hud-left {
+      background: var(--glass);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border: 1px solid var(--glass-border);
+      border-radius: 16px;
+      padding: 6px 12px 8px;
+    }
+
+    .hud-score {
+      font-size: 1.7rem;
+      font-weight: 900;
+      line-height: 1.1;
+      letter-spacing: 0.5px;
+      background: linear-gradient(90deg, #67e8f9, #a78bfa);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .hud-score small {
+      font-size: 0.85rem;
+      margin-left: 2px;
+      -webkit-text-fill-color: var(--muted);
+    }
+
+    .hud-sub { display: flex; gap: 6px; margin-top: 3px; }
+
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 0.74rem;
+      font-weight: 800;
+      padding: 2px 8px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.06);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .chip.best { color: #c4b5fd; }
+    .chip.balls { color: #fecaca; }
+
+    .mini-ball {
+      width: 11px;
+      height: 11px;
+      border-radius: 50%;
+      background: linear-gradient(180deg, #ef4444 0 45%, #0f172a 45% 55%, #f8fafc 55% 100%);
+      box-shadow: 0 0 0 1px #0f172a;
+      display: inline-block;
+    }
+
+    .hud-actions { display: flex; gap: 6px; pointer-events: auto; }
+
+    .round-btn {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      border: 1px solid var(--glass-border);
+      background: var(--glass);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      color: var(--text);
+      font-size: 1rem;
+      cursor: pointer;
+      transition: transform 0.1s, background 0.2s;
+    }
+
+    .round-btn:hover { background: rgba(51, 65, 85, 0.8); }
+    .round-btn:active { transform: scale(0.9); }
+
+    .buff-bar {
+      position: absolute;
+      top: 86px;
       left: 12px;
       display: flex;
       flex-wrap: wrap;
@@ -150,206 +181,356 @@
     }
 
     .buff-tag {
-      background: rgba(15, 23, 42, 0.85);
-      border: 1px solid var(--primary);
-      padding: 4px 10px;
+      background: var(--glass);
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(34, 211, 238, 0.5);
+      padding: 3px 10px;
       border-radius: 999px;
-      font-size: 0.75rem;
+      font-size: 0.74rem;
       font-weight: 800;
       color: #fff;
-      box-shadow: 0 0 12px rgba(6, 182, 212, 0.5);
+      animation: buffIn 0.25s ease;
     }
 
-    /* Gesture Hint Banner */
+    @keyframes buffIn { from { transform: translateY(-6px); opacity: 0; } }
+
+    .toast {
+      position: absolute;
+      top: 28%;
+      left: 50%;
+      transform: translate(-50%, -50%) scale(0.8);
+      font-size: clamp(1.3rem, 5vw, 2rem);
+      font-weight: 900;
+      color: #fff;
+      text-shadow: 0 0 18px rgba(34, 211, 238, 0.9), 0 2px 0 #0f172a;
+      opacity: 0;
+      pointer-events: none;
+      z-index: 12;
+      white-space: nowrap;
+      transition: opacity 0.25s, transform 0.25s;
+    }
+
+    .toast.show { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+
     .gesture-hint {
       position: absolute;
-      bottom: 8px;
+      bottom: 10px;
       left: 50%;
       transform: translateX(-50%);
-      background: rgba(15, 23, 42, 0.75);
-      color: #94a3b8;
+      background: var(--glass);
+      backdrop-filter: blur(8px);
+      color: var(--muted);
       font-size: 0.72rem;
-      padding: 3px 12px;
+      font-weight: 700;
+      padding: 4px 12px;
       border-radius: 999px;
       pointer-events: none;
       white-space: nowrap;
+      transition: opacity 0.6s;
+      z-index: 9;
     }
 
-    /* Overlay Screens */
+    .gesture-hint.fade { opacity: 0; }
+
+    /* ===== Overlays ===== */
     .overlay {
       position: absolute;
       inset: 0;
-      background: rgba(9, 13, 22, 0.88);
-      backdrop-filter: blur(6px);
+      background: radial-gradient(circle at 50% 30%, rgba(30, 27, 75, 0.82), rgba(7, 11, 20, 0.92));
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 14px;
+      z-index: 20;
+      overflow-y: auto;
+      animation: fadeIn 0.25s ease;
+    }
+
+    .overlay.hidden { display: none; }
+
+    @keyframes fadeIn { from { opacity: 0; } }
+
+    .menu-card {
+      width: 100%;
+      max-width: 520px;
+      text-align: center;
       display: flex;
       flex-direction: column;
       align-items: center;
-      justify-content: center;
-      padding: 16px;
-      text-align: center;
-      z-index: 20;
-      overflow-y: auto;
+      gap: 8px;
+      margin: auto;
+      animation: popIn 0.35s cubic-bezier(0.2, 1.4, 0.4, 1);
     }
 
-    .overlay.hidden {
-      display: none;
+    .menu-card.small { max-width: 320px; gap: 12px; }
+
+    @keyframes popIn { from { transform: scale(0.92); opacity: 0; } }
+
+    .menu-logo {
+      width: 54px;
+      height: 54px;
+      border-radius: 18px;
+      display: grid;
+      place-items: center;
+      font-size: 1.8rem;
+      background: linear-gradient(135deg, #facc15, #f97316);
+      box-shadow: 0 8px 30px rgba(250, 204, 21, 0.45);
+      animation: bob 2.2s ease-in-out infinite;
     }
+
+    @keyframes bob { 50% { transform: translateY(-5px) rotate(-4deg); } }
 
     .game-title {
-      font-size: clamp(1.6rem, 5vw, 2.2rem);
+      font-size: clamp(1.45rem, 5.2vw, 2.1rem);
       font-weight: 900;
-      background: linear-gradient(90deg, #22d3ee, #a855f7, #ec4899);
+      line-height: 1.15;
+      background: linear-gradient(90deg, #67e8f9, #a78bfa, #f472b6);
       -webkit-background-clip: text;
+      background-clip: text;
       -webkit-text-fill-color: transparent;
-      margin-bottom: 6px;
     }
+
+    .game-title span { font-size: 0.62em; letter-spacing: 2px; }
 
     .game-sub {
-      color: #94a3b8;
-      font-size: 0.85rem;
-      margin-bottom: 14px;
-      max-width: 480px;
+      color: var(--muted);
+      font-size: 0.84rem;
       line-height: 1.45;
+      max-width: 440px;
     }
 
-    .skin-grid {
+    .section-label {
+      align-self: flex-start;
+      font-size: 0.72rem;
+      font-weight: 900;
+      letter-spacing: 1px;
+      color: var(--muted);
+      margin-top: 4px;
+    }
+
+    .card-row, .skin-grid {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
       gap: 8px;
       width: 100%;
-      max-width: 480px;
-      margin-bottom: 16px;
     }
 
     .skin-card {
-      background: #1e293b;
-      border: 2px solid #334155;
-      border-radius: 14px;
-      padding: 8px 4px;
+      background: rgba(30, 41, 59, 0.7);
+      border: 2px solid rgba(71, 85, 105, 0.6);
+      border-radius: 16px;
+      padding: 8px 4px 7px;
       cursor: pointer;
       display: flex;
       flex-direction: column;
       align-items: center;
+      transition: transform 0.15s, border-color 0.2s, box-shadow 0.2s;
+      position: relative;
     }
 
+    .skin-card:hover { transform: translateY(-2px); }
+    .skin-card:active { transform: scale(0.96); }
+
     .skin-card.selected {
-      border-color: #22d3ee;
-      background: rgba(6, 182, 212, 0.18);
-      box-shadow: 0 0 15px rgba(6, 182, 212, 0.45);
+      border-color: var(--cyan);
+      background: linear-gradient(180deg, rgba(34, 211, 238, 0.18), rgba(30, 41, 59, 0.75));
+      box-shadow: 0 0 18px rgba(34, 211, 238, 0.35);
+    }
+
+    .skin-card.selected::after {
+      content: "✓";
+      position: absolute;
+      top: -7px;
+      right: -7px;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: var(--cyan);
+      color: #0f172a;
+      font-size: 0.75rem;
+      font-weight: 900;
+      display: grid;
+      place-items: center;
     }
 
     .skin-avatar-wrap {
       display: flex;
       justify-content: center;
       align-items: center;
-      height: 52px;
-      margin-bottom: 5px;
+      height: 46px;
+      margin-bottom: 4px;
     }
 
     .skin-thumb {
-      width: 48px;
-      height: 48px;
+      width: 44px;
+      height: 44px;
       border-radius: 50%;
       border: 2px solid #38bdf8;
       object-fit: cover;
       background: #0f172a;
     }
 
-    .skin-thumb.duo-thumb {
-      width: 38px;
-      height: 38px;
-      margin: 0 -5px;
-    }
+    .skin-thumb.duo-thumb { width: 34px; height: 34px; margin: 0 -5px; }
 
-    .skin-name { font-size: 0.75rem; font-weight: 800; color: #f8fafc; }
-    .skin-cost { font-size: 0.66rem; color: #38bdf8; font-weight: 700; margin-top: 2px; }
+    .skin-name { font-size: 0.72rem; font-weight: 800; color: #f8fafc; line-height: 1.2; }
+    .skin-cost { font-size: 0.62rem; color: #7dd3fc; font-weight: 700; margin-top: 2px; }
 
     .start-btn {
-      background: linear-gradient(135deg, #06b6d4, #6366f1, #ec4899);
+      margin-top: 6px;
+      width: 100%;
+      max-width: 300px;
+      background: linear-gradient(135deg, #22d3ee, #6366f1 55%, #ec4899);
+      background-size: 200% 200%;
       color: white;
       border: none;
-      padding: 13px 34px;
+      padding: 14px 24px;
       border-radius: 999px;
-      font-size: 1.05rem;
+      font-size: 1.1rem;
       font-weight: 900;
+      letter-spacing: 1px;
       cursor: pointer;
-      box-shadow: 0 10px 25px rgba(99, 102, 241, 0.5);
+      box-shadow: 0 10px 30px rgba(99, 102, 241, 0.5);
+      animation: shimmer 3s ease infinite;
+      transition: transform 0.12s;
     }
 
-    /* Mobile Thumb Ergonomic Controls Bar */
+    .start-btn:active { transform: scale(0.96); }
+
+    @keyframes shimmer { 50% { background-position: 100% 50%; } }
+
+    .ghost-btn {
+      width: 100%;
+      max-width: 300px;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid var(--glass-border);
+      color: var(--text);
+      padding: 12px 24px;
+      border-radius: 999px;
+      font-size: 0.95rem;
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    .key-hint { font-size: 0.68rem; color: #64748b; font-weight: 600; }
+
+    @media (max-width: 768px) { .key-hint { display: none; } }
+
+    /* Game over stats */
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      width: 100%;
+      margin: 4px 0;
+    }
+
+    .stat-box {
+      background: rgba(30, 41, 59, 0.7);
+      border: 1px solid var(--glass-border);
+      border-radius: 14px;
+      padding: 8px 4px;
+    }
+
+    .stat-box b {
+      display: block;
+      font-size: 1.25rem;
+      font-weight: 900;
+      color: #fff;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .stat-box span { font-size: 0.68rem; color: var(--muted); font-weight: 700; }
+
+    .new-record {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 999px;
+      background: linear-gradient(90deg, #facc15, #f97316);
+      color: #1f2937;
+      font-weight: 900;
+      font-size: 0.8rem;
+      animation: bob 1.2s ease-in-out infinite;
+    }
+
+    /* ===== Controls ===== */
     .controls-bar {
       display: grid;
-      grid-template-columns: 1fr 1fr 1.4fr;
+      grid-template-columns: 1fr 1fr 1.5fr;
       gap: 10px;
-      padding: 12px 14px calc(12px + env(safe-area-inset-bottom, 0px));
-      background: #0f172a;
-      border-top: 1px solid #1e293b;
       flex-shrink: 0;
     }
 
     .ctrl-btn {
-      background: #1e293b;
-      border: 2px solid #334155;
-      color: #f8fafc;
-      border-radius: 18px;
-      padding: 14px 8px;
-      font-size: 0.98rem;
-      font-weight: 900;
+      position: relative;
+      height: 72px;
+      border-radius: 20px;
+      border: 1px solid var(--glass-border);
+      background: rgba(30, 41, 59, 0.75);
+      color: var(--text);
       cursor: pointer;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      gap: 3px;
-      transition: transform 0.08s;
+      gap: 2px;
+      overflow: hidden;
+      transition: transform 0.08s, filter 0.1s;
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35);
     }
 
-    .ctrl-btn:active, .ctrl-btn.pressed {
-      transform: scale(0.93);
-      filter: brightness(1.25);
-    }
+    .ctrl-btn:active { transform: scale(0.94); filter: brightness(1.3); }
 
-    .ctrl-btn.slide {
-      border-color: rgba(245, 158, 11, 0.6);
-      background: rgba(245, 158, 11, 0.15);
-    }
+    .ctrl-icon { font-size: 1.5rem; font-weight: 900; line-height: 1; position: relative; z-index: 1; }
+    .ctrl-label { font-size: 0.74rem; font-weight: 800; color: #cbd5e1; position: relative; z-index: 1; }
 
-    .ctrl-btn.dash {
-      border-color: rgba(236, 72, 153, 0.6);
-      background: rgba(236, 72, 153, 0.15);
+    .ctrl-btn.slide { border-color: rgba(251, 191, 36, 0.45); background: linear-gradient(180deg, rgba(251, 191, 36, 0.18), rgba(30, 41, 59, 0.8)); }
+    .ctrl-btn.slide .ctrl-icon { color: var(--amber); }
+
+    .ctrl-btn.dash { border-color: rgba(244, 114, 182, 0.45); background: linear-gradient(180deg, rgba(244, 114, 182, 0.18), rgba(30, 41, 59, 0.8)); }
+    .ctrl-btn.dash .ctrl-icon { color: var(--pink); }
+
+    /* Dash cooldown fill */
+    .ctrl-btn.dash::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      bottom: 0;
+      width: 100%;
+      height: calc(var(--cd, 0) * 100%);
+      background: rgba(15, 23, 42, 0.7);
+      transition: height 0.1s linear;
     }
 
     .ctrl-btn.jump {
-      border-color: rgba(34, 211, 238, 0.7);
-      background: linear-gradient(135deg, rgba(6, 182, 212, 0.28), rgba(99, 102, 241, 0.28));
-      font-size: 1.1rem;
+      border-color: rgba(34, 211, 238, 0.6);
+      background: linear-gradient(135deg, rgba(34, 211, 238, 0.35), rgba(99, 102, 241, 0.35));
+      box-shadow: 0 6px 22px rgba(34, 211, 238, 0.25);
     }
 
-    .ctrl-hint {
-      font-size: 0.68rem;
-      color: #94a3b8;
-      font-weight: 600;
+    .ctrl-btn.jump .ctrl-icon { font-size: 1.8rem; color: #a5f3fc; }
+
+    @media (min-width: 769px) {
+      .ctrl-btn { height: 58px; flex-direction: row; gap: 8px; }
+      .ctrl-icon { font-size: 1.2rem; }
+      .ctrl-btn.jump .ctrl-icon { font-size: 1.3rem; }
+      .ctrl-label { font-size: 0.85rem; }
     }
 
-    /* QR Code Modal */
-    .qr-box {
-      background: white;
-      padding: 12px;
-      border-radius: 16px;
-      margin: 12px 0;
-      display: inline-block;
-    }
+    /* QR */
+    .qr-box { background: white; padding: 10px; border-radius: 16px; display: inline-block; }
 
     .url-badge {
-      background: #1e293b;
+      background: rgba(30, 41, 59, 0.8);
       border: 1px solid #38bdf8;
-      color: #38bdf8;
-      padding: 8px 16px;
+      color: #7dd3fc;
+      padding: 7px 14px;
       border-radius: 10px;
       font-family: monospace;
-      font-size: 0.95rem;
+      font-size: 0.85rem;
       font-weight: 700;
-      margin-bottom: 12px;
+      word-break: break-all;
       user-select: text;
       -webkit-user-select: text;
     }
@@ -357,79 +538,87 @@
 </head>
 <body>
   <div class="app-wrapper">
-    <!-- Top HUD -->
-    <div class="hud-bar">
-      <div class="hud-stats">
-        <div class="stat-pill score">🏃 <span id="scoreText">0</span>m</div>
-        <div class="stat-pill best">🏆 <span id="bestText">0</span>m</div>
-        <div class="stat-pill coins">🔴 精靈球：<span id="coinsText">0</span></div>
-      </div>
-      <div class="hud-actions">
-        <button class="icon-btn qr-btn" id="qrOpenBtn">📱 手機掃碼玩</button>
-        <button class="icon-btn" id="pauseBtn">⏸️</button>
-        <button class="icon-btn" id="soundBtn">🔊</button>
-      </div>
-    </div>
-
-    <!-- Canvas Viewport -->
+    <!-- Game Stage -->
     <div class="canvas-wrap" id="touchZone">
       <canvas id="gameCanvas" width="860" height="460"></canvas>
+
+      <!-- Floating HUD -->
+      <div class="hud">
+        <div class="hud-left">
+          <div class="hud-score"><span id="scoreText">0</span><small>m</small></div>
+          <div class="hud-sub">
+            <span class="chip best">🏆 <span id="bestText">0</span>m</span>
+            <span class="chip balls"><i class="mini-ball"></i><span id="coinsText">0</span></span>
+          </div>
+        </div>
+        <div class="hud-actions">
+          <button class="round-btn" id="qrOpenBtn" title="手機掃碼玩">📱</button>
+          <button class="round-btn" id="soundBtn" title="音效">🔊</button>
+          <button class="round-btn" id="pauseBtn" title="暫停 (P)">⏸️</button>
+        </div>
+      </div>
       <div class="buff-bar" id="buffBar"></div>
-      <div class="gesture-hint">💡 手機支援：下方大按鍵 或 在畫面「點一下跳躍、下滑蹲下、右滑衝刺」</div>
+      <div class="toast" id="toast"></div>
+      <div class="gesture-hint" id="gestureHint">👆 點畫面跳躍 · 👇 下滑蹲下 · 👉 右滑衝刺</div>
 
-      <!-- Main Menu / GameOver Overlay -->
+      <!-- Main Menu / Game Over -->
       <div class="overlay" id="menuOverlay">
-        <div class="game-title" id="overlayTitle">⚡ Alfie & Darren 寶可夢單車酷跑</div>
-        <p class="game-sub" id="overlayDesc">
-          選擇小騎士與專屬<b>寶可夢風格夥伴</b>一起出擊！<br />
-          沿途收集 🔴⚪ 精靈球，發動十萬伏特、噴射火焰與飛水手裏劍衝破極限！
-        </p>
+        <div class="menu-card">
+          <div class="menu-logo">⚡</div>
+          <div class="game-title" id="overlayTitle">Alfie &amp; Darren<br /><span>寶可夢單車酷跑</span></div>
+          <div class="game-sub" id="overlayDesc">選擇小騎士與夥伴，沿途收集精靈球、閃避障礙，看誰騎得最遠！</div>
 
-        <div style="font-size:0.75rem;color:#38bdf8;font-weight:800;margin-bottom:4px;">🚴‍♂️ 選擇出戰小騎士：</div>
-        <div class="skin-grid" id="skinGrid" style="margin-bottom:10px;"></div>
+          <div class="section-label">🚴 選擇小騎士</div>
+          <div class="card-row" id="skinGrid"></div>
 
-        <div style="font-size:0.75rem;color:#fbbf24;font-weight:800;margin-bottom:4px;">⚡ 選擇寶可夢風格夥伴（隨行助戰）：</div>
-        <div class="skin-grid" id="pokeGrid" style="margin-bottom:14px;"></div>
+          <div class="section-label">✨ 選擇寶可夢風格夥伴</div>
+          <div class="card-row" id="pokeGrid"></div>
 
-        <button class="start-btn" id="startBtn">🚀 點擊立即開跑</button>
+          <button class="start-btn" id="startBtn">▶ 開始騎車</button>
+          <div class="key-hint">電腦：空白鍵 跳躍 · ↓ 蹲下 · Shift 衝刺 · P 暫停</div>
+        </div>
       </div>
 
-      <!-- QR Code Overlay for Mobile Connection -->
-      <div class="overlay hidden" id="qrOverlay">
-        <div class="game-title">📱 用手機掃描立即玩</div>
-        <p class="game-sub">
-          已部署至 <b>GitHub Pages</b>！手機不限網路（4G / 5G / Wi-Fi）直接用相機掃描下方 QR Code 即可暢玩：
-        </p>
-        <div class="qr-box">
-          <img
-            id="qrImg"
-            alt="QR Code"
-            width="180"
-            height="180"
-            src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=https://hsienstyle.github.io/neon-runner-game/"
-          />
+      <!-- Pause -->
+      <div class="overlay hidden" id="pauseOverlay">
+        <div class="menu-card small">
+          <div class="game-title">⏸ 暫停中</div>
+          <button class="start-btn" id="resumeBtn">▶ 繼續騎車</button>
+          <button class="ghost-btn" id="quitBtn">🏠 回主選單</button>
         </div>
-        <div class="url-badge" id="lanUrlText">https://hsienstyle.github.io/neon-runner-game/</div>
-        <p class="game-sub" style="font-size: 0.78rem;">
-          💡 掃描打開後，可點選瀏覽器選單「加入主畫面」變身獨立手機 APP！
-        </p>
-        <button class="start-btn" id="qrCloseBtn">返回遊戲</button>
+      </div>
+
+      <!-- QR Code -->
+      <div class="overlay hidden" id="qrOverlay">
+        <div class="menu-card small">
+          <div class="game-title">📱 手機掃碼玩</div>
+          <div class="game-sub">4G / 5G / Wi-Fi 都能玩，用相機掃描：</div>
+          <div class="qr-box">
+            <img
+              id="qrImg"
+              alt="QR Code"
+              width="180"
+              height="180"
+              src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=https://hsienstyle.github.io/neon-runner-game/"
+            />
+          </div>
+          <div class="url-badge" id="lanUrlText">https://hsienstyle.github.io/neon-runner-game/</div>
+          <div class="game-sub" style="font-size: 0.74rem;">💡 打開後選「加入主畫面」就像 APP 一樣！</div>
+          <button class="start-btn" id="qrCloseBtn">返回遊戲</button>
+        </div>
       </div>
     </div>
 
-    <!-- Mobile Thumb Controls (Left: Slide & Dash, Right: Big Jump) -->
+    <!-- Thumb Controls -->
     <div class="controls-bar">
       <button class="ctrl-btn slide" id="btnSlide">
-        <span>⬇️ 滑行蹲下</span>
-        <span class="ctrl-hint">按住不放 / 下滑</span>
+        <span class="ctrl-icon">⬇</span><span class="ctrl-label">蹲下</span>
       </button>
       <button class="ctrl-btn dash" id="btnDash">
-        <span>⚡ 無敵衝刺</span>
-        <span class="ctrl-hint">撞碎障礙 / 右滑</span>
+        <span class="ctrl-icon">⚡</span><span class="ctrl-label">衝刺</span>
       </button>
       <button class="ctrl-btn jump" id="btnJump">
-        <span>⬆️ 跳躍 / 二段跳</span>
-        <span class="ctrl-hint">大拇指連按可二段跳</span>
+        <span class="ctrl-icon">⬆</span><span class="ctrl-label">跳躍（可二段）</span>
       </button>
     </div>
   </div>
@@ -605,6 +794,19 @@
     let speed = 6.5;
     let frameCount = 0;
     let shakeFrames = 0;
+    let startCountdown = 0;
+    let popups = [];
+    let nextMilestone = 250;
+    let ballsThisRun = 0;
+    const toastEl = document.getElementById("toast");
+    const gestureHint = document.getElementById("gestureHint");
+    const pauseOverlay = document.getElementById("pauseOverlay");
+    const stars = Array.from({ length: 70 }, () => ({
+      x: Math.random() * 1100,
+      y: Math.random() * 260,
+      r: Math.random() * 1.4 + 0.3,
+      tw: Math.random() * Math.PI * 2
+    }));
 
     const player = {
       x: 64,
@@ -623,13 +825,22 @@
       jetpackTimer: 0
     };
 
+    // Keep a playable wide view on every screen; letterbox inside the stage on portrait phones
     function syncCanvasAspect() {
-      const rect = canvas.getBoundingClientRect();
-      if (rect.width > 0 && rect.height > 0) {
-        canvas.height = 460;
-        canvas.width = Math.max(340, Math.round(460 * (rect.width / rect.height)));
-        player.x = Math.min(115, Math.max(72, Math.round(canvas.width * 0.22)));
+      const wrap = canvas.parentElement.getBoundingClientRect();
+      if (!wrap.width || !wrap.height) return;
+      const logicalW = Math.round(Math.min(1100, Math.max(640, 460 * (wrap.width / wrap.height))));
+      canvas.width = logicalW;
+      canvas.height = 460;
+      let cssW = wrap.width;
+      let cssH = (wrap.width * 460) / logicalW;
+      if (cssH > wrap.height) {
+        cssH = wrap.height;
+        cssW = (cssH * logicalW) / 460;
       }
+      canvas.style.width = `${Math.floor(cssW)}px`;
+      canvas.style.height = `${Math.floor(cssH)}px`;
+      player.x = Math.min(130, Math.max(90, Math.round(logicalW * 0.16)));
     }
     window.addEventListener("resize", syncCanvasAspect);
     window.addEventListener("orientationchange", () => setTimeout(syncCanvasAspect, 150));
@@ -692,14 +903,36 @@
       coins = [];
       powerups = [];
       particles = [];
+      popups = [];
+      nextMilestone = 250;
+      ballsThisRun = 0;
+      startCountdown = 200; // 3-2-1 GO!
+      lastBuffHTML = "";
+      buffBar.innerHTML = "";
+      btnDash.style.setProperty("--cd", 0);
       isRunning = true;
       isPaused = false;
+      pauseBtn.textContent = "⏸️";
       menuOverlay.classList.add("hidden");
+      pauseOverlay.classList.add("hidden");
       qrOverlay.classList.add("hidden");
+      gestureHint.classList.remove("fade");
+      setTimeout(() => gestureHint.classList.add("fade"), 5000);
+    }
+
+    function setPaused(value) {
+      if (!isRunning) return;
+      isPaused = value;
+      pauseBtn.textContent = isPaused ? "▶️" : "⏸️";
+      pauseOverlay.classList.toggle("hidden", !isPaused);
+    }
+
+    function togglePause() {
+      setPaused(!isPaused);
     }
 
     function doJump() {
-      if (!isRunning || isPaused) return;
+      if (!isRunning || isPaused || startCountdown > 0) return;
       if (player.isSliding) setSlide(false);
 
       if (player.jumpCount < player.maxJumps) {
@@ -711,7 +944,7 @@
     }
 
     function setSlide(sliding) {
-      if (!isRunning || isPaused) return;
+      if (!isRunning || isPaused || startCountdown > 0) return;
       if (sliding && !player.isSliding) {
         player.isSliding = true;
         player.h = 30;
@@ -727,7 +960,7 @@
     }
 
     function doDash() {
-      if (!isRunning || isPaused) return;
+      if (!isRunning || isPaused || startCountdown > 0) return;
       if (player.dashCooldown <= 0 && player.dashTimer <= 0) {
         player.dashTimer = 18;
         player.dashCooldown = 90;
@@ -782,17 +1015,26 @@
       return a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y;
     }
 
+    let lastBuffHTML = "";
     function updateBuffUI() {
       const tags = [];
       if (player.shield) tags.push(`<span class="buff-tag">🛡️ 護盾</span>`);
       if (player.magnetTimer > 0) tags.push(`<span class="buff-tag">🧲 ${Math.ceil(player.magnetTimer / 60)}s</span>`);
       if (player.jetpackTimer > 0) tags.push(`<span class="buff-tag">🚀 ${Math.ceil(player.jetpackTimer / 60)}s</span>`);
-      if (player.dashCooldown > 0) {
-        tags.push(`<span class="buff-tag" style="border-color:#64748b;opacity:0.75;">⚡ ${(player.dashCooldown / 60).toFixed(1)}s</span>`);
-      } else {
-        tags.push(`<span class="buff-tag" style="border-color:#ec4899;">⚡ 衝刺就緒</span>`);
+      const html = tags.join("");
+      if (html !== lastBuffHTML) {
+        buffBar.innerHTML = html;
+        lastBuffHTML = html;
       }
-      buffBar.innerHTML = tags.join("");
+      // Dash cooldown shown directly on the dash button
+      btnDash.style.setProperty("--cd", (player.dashCooldown / 90).toFixed(2));
+    }
+
+    function showToast(text) {
+      toastEl.textContent = text;
+      toastEl.classList.add("show");
+      clearTimeout(showToast._t);
+      showToast._t = setTimeout(() => toastEl.classList.remove("show"), 1300);
     }
 
     function updateGame() {
@@ -802,6 +1044,11 @@
       speed = Math.min(13.5, 6.5 + distance * 0.0045);
 
       scoreText.textContent = Math.floor(distance);
+      if (distance >= nextMilestone) {
+        showToast(`🎉 ${nextMilestone} 公尺！加速中`);
+        sfx("powerup");
+        nextMilestone += 250;
+      }
 
       if (player.dashTimer > 0) player.dashTimer--;
       if (player.dashCooldown > 0) player.dashCooldown--;
@@ -881,6 +1128,8 @@
           coinsText.textContent = totalCoins;
           sfx("coin");
           spawnParticles(c.x, c.y, "#fbbf24", 6);
+          ballsThisRun++;
+          popups.push({ x: c.x, y: c.y - 10, text: "+1", color: "#fecaca", life: 40 });
           return false;
         }
         return c.x > -30;
@@ -935,8 +1184,10 @@
       isRunning = false;
       sfx("hit");
       shakeFrames = 18;
-      if (distance > bestScore) {
-        bestScore = Math.floor(distance);
+      const runDist = Math.floor(distance);
+      const isNewRecord = runDist > bestScore;
+      if (isNewRecord) {
+        bestScore = runDist;
         localStorage.setItem("neonRunnerBest", bestScore);
       }
       updateHUD();
@@ -947,10 +1198,17 @@
           : currentSkinId === "hero2"
           ? "Darren"
           : "Alfie & Darren";
-      overlayTitle.textContent = `🚴‍♂️ ${who} 騎了 ${Math.floor(distance)} 公尺！`;
-      overlayDesc.innerHTML = `最高紀錄：<b>${Math.floor(bestScore)} m</b> ｜ 累積金幣：<b>🪙 ${totalCoins}</b><br/>點選下方頭像可切換 <b>Alfie</b> 或 <b>Darren</b>，再來一局！`;
-      startBtn.textContent = "🔄 再跑一局";
-      menuOverlay.classList.remove("hidden");
+      overlayTitle.textContent = `🚴‍♂️ ${who} 騎了 ${runDist} 公尺！`;
+      overlayDesc.innerHTML = `
+        ${isNewRecord ? '<div class="new-record">🏆 新紀錄！</div>' : ""}
+        <div class="stats-row">
+          <div class="stat-box"><b>${runDist}</b><span>本局距離 (m)</span></div>
+          <div class="stat-box"><b>${bestScore}</b><span>最高紀錄 (m)</span></div>
+          <div class="stat-box"><b>${ballsThisRun}</b><span>精靈球</span></div>
+        </div>
+        換個小騎士或夥伴，再挑戰一次！`;
+      startBtn.textContent = "🔄 再騎一局";
+      setTimeout(() => menuOverlay.classList.remove("hidden"), 450);
     }
 
     function drawGame() {
@@ -961,24 +1219,62 @@
       }
 
       const grad = ctx.createLinearGradient(0, 0, 0, canvas.height);
-      grad.addColorStop(0, "#090d16");
-      grad.addColorStop(1, "#1e1b4b");
+      grad.addColorStop(0, "#060a1a");
+      grad.addColorStop(0.55, "#1e1b4b");
+      grad.addColorStop(1, "#3b0764");
       ctx.fillStyle = grad;
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
+      // Twinkling stars
+      stars.forEach((st) => {
+        if (st.x > canvas.width) return;
+        ctx.globalAlpha = 0.45 + Math.sin(frameCount * 0.05 + st.tw) * 0.35;
+        ctx.fillStyle = "#e0f2fe";
+        ctx.beginPath();
+        ctx.arc(st.x, st.y, st.r, 0, Math.PI * 2);
+        ctx.fill();
+      });
+      ctx.globalAlpha = 1;
+
+      // Glowing moon
+      ctx.save();
+      ctx.shadowColor = "#fde68a";
+      ctx.shadowBlur = 40;
+      ctx.fillStyle = "#fef3c7";
+      ctx.beginPath();
+      ctx.arc(canvas.width - 90, 80, 30, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+
+      // City skyline with lit windows
       bgBuildings.forEach((b) => {
-        ctx.fillStyle = b.layer === 1 ? "rgba(30, 41, 59, 0.55)" : "rgba(51, 65, 85, 0.65)";
+        const far = b.layer === 1;
+        ctx.fillStyle = far ? "rgba(30, 27, 75, 0.85)" : "rgba(17, 24, 39, 0.95)";
         ctx.fillRect(b.x, GROUND_Y - b.h, b.w, b.h);
+        ctx.fillStyle = far ? "rgba(167, 139, 250, 0.35)" : "rgba(253, 224, 71, 0.55)";
+        for (let wy = GROUND_Y - b.h + 10; wy < GROUND_Y - 12; wy += 16) {
+          for (let wx = b.x + 7; wx < b.x + b.w - 8; wx += 12) {
+            if (((wx * 7 + wy * 13) | 0) % 5 < 2) ctx.fillRect(wx, wy, 5, 7);
+          }
+        }
       });
 
-      ctx.fillStyle = "#0f172a";
+      // Ground
+      const groundGrad = ctx.createLinearGradient(0, GROUND_Y, 0, canvas.height);
+      groundGrad.addColorStop(0, "#1e1b4b");
+      groundGrad.addColorStop(1, "#0b1020");
+      ctx.fillStyle = groundGrad;
       ctx.fillRect(0, GROUND_Y, canvas.width, canvas.height - GROUND_Y);
-      ctx.strokeStyle = "#06b6d4";
+      ctx.save();
+      ctx.shadowColor = "#22d3ee";
+      ctx.shadowBlur = 12;
+      ctx.strokeStyle = "#22d3ee";
       ctx.lineWidth = 3;
       ctx.beginPath();
       ctx.moveTo(0, GROUND_Y);
       ctx.lineTo(canvas.width, GROUND_Y);
       ctx.stroke();
+      ctx.restore();
 
       ctx.strokeStyle = "rgba(6, 182, 212, 0.25)";
       ctx.lineWidth = 1.5;
@@ -1458,13 +1754,51 @@
       });
       ctx.globalAlpha = 1;
 
+      // Floating "+1" popups
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.font = "900 16px 'Segoe UI', sans-serif";
+      popups.forEach((pp) => {
+        ctx.globalAlpha = Math.max(0, pp.life / 40);
+        ctx.fillStyle = pp.color;
+        ctx.fillText(pp.text, pp.x, pp.y);
+      });
+      ctx.globalAlpha = 1;
+
+      // 3-2-1 GO countdown
+      if (isRunning && startCountdown > 0) {
+        const n = Math.ceil(startCountdown / 50) - 1;
+        const label = n > 0 ? String(n) : "GO!";
+        const t = (startCountdown % 50) / 50;
+        ctx.save();
+        ctx.translate(canvas.width / 2, canvas.height * 0.42);
+        ctx.scale(1 + t * 0.5, 1 + t * 0.5);
+        ctx.globalAlpha = Math.min(1, t * 2 + 0.2);
+        ctx.font = "900 72px 'Segoe UI', sans-serif";
+        ctx.shadowColor = n > 0 ? "#22d3ee" : "#facc15";
+        ctx.shadowBlur = 30;
+        ctx.fillStyle = n > 0 ? "#e0f2fe" : "#fde047";
+        ctx.fillText(label, 0, 0);
+        ctx.restore();
+      }
+
       ctx.restore();
     }
 
     function loop() {
       if (isRunning && !isPaused) {
-        updateGame();
+        if (startCountdown > 0) {
+          startCountdown--;
+          if (startCountdown % 50 === 49) sfx(startCountdown < 50 ? "powerup" : "coin");
+        } else {
+          updateGame();
+        }
       }
+      popups.forEach((pp) => {
+        pp.y -= 0.8;
+        pp.life--;
+      });
+      popups = popups.filter((pp) => pp.life > 0);
       drawGame();
       requestAnimationFrame(loop);
     }
@@ -1481,11 +1815,8 @@
       } else if (e.code === "ShiftLeft" || e.code === "ShiftRight" || e.code === "KeyD") {
         e.preventDefault();
         doDash();
-      } else if (e.code === "KeyP") {
-        if (isRunning) {
-          isPaused = !isPaused;
-          pauseBtn.textContent = isPaused ? "▶️" : "⏸️";
-        }
+      } else if (e.code === "KeyP" || e.code === "Escape") {
+        togglePause();
       } else if (e.code === "Enter" && !isRunning) {
         resetGame();
       }
@@ -1523,7 +1854,7 @@
     let swiped = false;
 
     touchZone.addEventListener("touchstart", (e) => {
-      if (!isRunning || isPaused) return;
+      if (!isRunning || isPaused || startCountdown > 0) return;
       touchStartX = e.touches[0].clientX;
       touchStartY = e.touches[0].clientY;
       swiped = false;
@@ -1543,8 +1874,10 @@
       }
     }, { passive: true });
 
-    touchZone.addEventListener("touchend", () => {
-      if (!isRunning || isPaused) return;
+    touchZone.addEventListener("touchend", (e) => {
+      // Ignore taps on HUD buttons / overlays so they don't trigger a jump
+      if (e.target.closest && e.target.closest("button, .overlay")) return;
+      if (!isRunning || isPaused || startCountdown > 0) return;
       if (!swiped) {
         doJump();
       }
@@ -1552,10 +1885,15 @@
 
     // ====== UI Buttons ======
     startBtn.addEventListener("click", resetGame);
-    pauseBtn.addEventListener("click", () => {
-      if (!isRunning) return;
-      isPaused = !isPaused;
-      pauseBtn.textContent = isPaused ? "▶️" : "⏸️";
+    pauseBtn.addEventListener("click", togglePause);
+    document.getElementById("resumeBtn").addEventListener("click", () => setPaused(false));
+    document.getElementById("quitBtn").addEventListener("click", () => {
+      pauseOverlay.classList.add("hidden");
+      isPaused = false;
+      isRunning = false;
+      pauseBtn.textContent = "⏸️";
+      startBtn.textContent = "▶ 開始騎車";
+      menuOverlay.classList.remove("hidden");
     });
     soundBtn.addEventListener("click", () => {
       soundOn = !soundOn;
