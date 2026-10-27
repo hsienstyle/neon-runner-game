@@ -1,0 +1,1104 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <title>⚡ 霓虹酷跑王 — 手機觸控 & 電腦雙棲版</title>
+  <style>
+    :root {
+      --bg-dark: #090d16;
+      --primary: #06b6d4;
+      --accent: #f59e0b;
+      --pink: #ec4899;
+      --text: #f8fafc;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang TC", "Microsoft JhengHei", sans-serif;
+      user-select: none;
+      -webkit-user-select: none;
+      -webkit-touch-callout: none;
+      touch-action: manipulation;
+    }
+
+    html, body {
+      width: 100%;
+      height: 100dvh;
+      background: radial-gradient(circle at center, #1e1b4b 0%, #090d16 100%);
+      color: var(--text);
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .app-wrapper {
+      width: 100%;
+      max-width: 900px;
+      height: 100dvh;
+      max-height: 680px;
+      background: #0f172a;
+      border: 2px solid #334155;
+      border-radius: 24px;
+      box-shadow: 0 25px 70px rgba(0, 0, 0, 0.8), 0 0 35px rgba(6, 182, 212, 0.25);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      position: relative;
+    }
+
+    /* Mobile Fullscreen adaptation */
+    @media (max-width: 768px) {
+      .app-wrapper {
+        max-height: 100dvh;
+        border: none;
+        border-radius: 0;
+      }
+    }
+
+    /* Top HUD Bar */
+    .hud-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 14px;
+      background: rgba(15, 23, 42, 0.96);
+      border-bottom: 1px solid #1e293b;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+
+    .hud-stats {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .stat-pill {
+      background: #1e293b;
+      border: 1px solid #334155;
+      padding: 5px 10px;
+      border-radius: 999px;
+      font-size: 0.82rem;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .stat-pill.score { color: #38bdf8; }
+    .stat-pill.best { color: #a78bfa; }
+    .stat-pill.coins { color: #fbbf24; }
+
+    .hud-actions {
+      display: flex;
+      gap: 6px;
+    }
+
+    .icon-btn {
+      background: #1e293b;
+      border: 1px solid #475569;
+      color: var(--text);
+      padding: 6px 10px;
+      border-radius: 10px;
+      font-size: 0.78rem;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .icon-btn.qr-btn {
+      background: rgba(6, 182, 212, 0.18);
+      border-color: #06b6d4;
+      color: #22d3ee;
+    }
+
+    /* Canvas Area */
+    .canvas-wrap {
+      position: relative;
+      width: 100%;
+      flex: 1;
+      background: #090d16;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    canvas {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    /* Active Buffs Indicator */
+    .buff-bar {
+      position: absolute;
+      top: 10px;
+      left: 12px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      pointer-events: none;
+      z-index: 10;
+    }
+
+    .buff-tag {
+      background: rgba(15, 23, 42, 0.85);
+      border: 1px solid var(--primary);
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 0.75rem;
+      font-weight: 800;
+      color: #fff;
+      box-shadow: 0 0 12px rgba(6, 182, 212, 0.5);
+    }
+
+    /* Gesture Hint Banner */
+    .gesture-hint {
+      position: absolute;
+      bottom: 8px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(15, 23, 42, 0.75);
+      color: #94a3b8;
+      font-size: 0.72rem;
+      padding: 3px 12px;
+      border-radius: 999px;
+      pointer-events: none;
+      white-space: nowrap;
+    }
+
+    /* Overlay Screens */
+    .overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(9, 13, 22, 0.88);
+      backdrop-filter: blur(6px);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      text-align: center;
+      z-index: 20;
+      overflow-y: auto;
+    }
+
+    .overlay.hidden {
+      display: none;
+    }
+
+    .game-title {
+      font-size: clamp(1.6rem, 5vw, 2.2rem);
+      font-weight: 900;
+      background: linear-gradient(90deg, #22d3ee, #a855f7, #ec4899);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 6px;
+    }
+
+    .game-sub {
+      color: #94a3b8;
+      font-size: 0.85rem;
+      margin-bottom: 14px;
+      max-width: 480px;
+      line-height: 1.45;
+    }
+
+    .skin-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+      width: 100%;
+      max-width: 480px;
+      margin-bottom: 16px;
+    }
+
+    .skin-card {
+      background: #1e293b;
+      border: 2px solid #334155;
+      border-radius: 14px;
+      padding: 8px 4px;
+      cursor: pointer;
+    }
+
+    .skin-card.selected {
+      border-color: #22d3ee;
+      background: rgba(6, 182, 212, 0.15);
+      box-shadow: 0 0 15px rgba(6, 182, 212, 0.35);
+    }
+
+    .skin-emoji { font-size: 1.6rem; margin-bottom: 2px; }
+    .skin-name { font-size: 0.74rem; font-weight: 800; color: #f8fafc; }
+    .skin-cost { font-size: 0.66rem; color: #fbbf24; font-weight: 700; margin-top: 2px; }
+
+    .start-btn {
+      background: linear-gradient(135deg, #06b6d4, #6366f1, #ec4899);
+      color: white;
+      border: none;
+      padding: 13px 34px;
+      border-radius: 999px;
+      font-size: 1.05rem;
+      font-weight: 900;
+      cursor: pointer;
+      box-shadow: 0 10px 25px rgba(99, 102, 241, 0.5);
+    }
+
+    /* Mobile Thumb Ergonomic Controls Bar */
+    .controls-bar {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1.4fr;
+      gap: 10px;
+      padding: 12px 14px calc(12px + env(safe-area-inset-bottom, 0px));
+      background: #0f172a;
+      border-top: 1px solid #1e293b;
+      flex-shrink: 0;
+    }
+
+    .ctrl-btn {
+      background: #1e293b;
+      border: 2px solid #334155;
+      color: #f8fafc;
+      border-radius: 18px;
+      padding: 14px 8px;
+      font-size: 0.98rem;
+      font-weight: 900;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 3px;
+      transition: transform 0.08s;
+    }
+
+    .ctrl-btn:active, .ctrl-btn.pressed {
+      transform: scale(0.93);
+      filter: brightness(1.25);
+    }
+
+    .ctrl-btn.slide {
+      border-color: rgba(245, 158, 11, 0.6);
+      background: rgba(245, 158, 11, 0.15);
+    }
+
+    .ctrl-btn.dash {
+      border-color: rgba(236, 72, 153, 0.6);
+      background: rgba(236, 72, 153, 0.15);
+    }
+
+    .ctrl-btn.jump {
+      border-color: rgba(34, 211, 238, 0.7);
+      background: linear-gradient(135deg, rgba(6, 182, 212, 0.28), rgba(99, 102, 241, 0.28));
+      font-size: 1.1rem;
+    }
+
+    .ctrl-hint {
+      font-size: 0.68rem;
+      color: #94a3b8;
+      font-weight: 600;
+    }
+
+    /* QR Code Modal */
+    .qr-box {
+      background: white;
+      padding: 12px;
+      border-radius: 16px;
+      margin: 12px 0;
+      display: inline-block;
+    }
+
+    .url-badge {
+      background: #1e293b;
+      border: 1px solid #38bdf8;
+      color: #38bdf8;
+      padding: 8px 16px;
+      border-radius: 10px;
+      font-family: monospace;
+      font-size: 0.95rem;
+      font-weight: 700;
+      margin-bottom: 12px;
+      user-select: text;
+      -webkit-user-select: text;
+    }
+  </style>
+</head>
+<body>
+  <div class="app-wrapper">
+    <!-- Top HUD -->
+    <div class="hud-bar">
+      <div class="hud-stats">
+        <div class="stat-pill score">🏃 <span id="scoreText">0</span>m</div>
+        <div class="stat-pill best">🏆 <span id="bestText">0</span>m</div>
+        <div class="stat-pill coins">🪙 <span id="coinsText">0</span></div>
+      </div>
+      <div class="hud-actions">
+        <button class="icon-btn qr-btn" id="qrOpenBtn">📱 手機掃碼玩</button>
+        <button class="icon-btn" id="pauseBtn">⏸️</button>
+        <button class="icon-btn" id="soundBtn">🔊</button>
+      </div>
+    </div>
+
+    <!-- Canvas Viewport -->
+    <div class="canvas-wrap" id="touchZone">
+      <canvas id="gameCanvas" width="860" height="460"></canvas>
+      <div class="buff-bar" id="buffBar"></div>
+      <div class="gesture-hint">💡 手機支援：下方大按鍵 或 在畫面「點一下跳躍、下滑蹲下、右滑衝刺」</div>
+
+      <!-- Main Menu / GameOver Overlay -->
+      <div class="overlay" id="menuOverlay">
+        <div class="game-title" id="overlayTitle">⚡ 霓虹酷跑王</div>
+        <p class="game-sub" id="overlayDesc">
+          支援<b>二段跳</b>、<b>滑行閃避無人機</b>與<b>無敵衝刺</b>！<br />
+          收集賽道上的 🪙 金幣解鎖角色，撿取 🛡️護盾、🧲磁鐵、🚀噴射背包衝破極限！
+        </p>
+
+        <div class="skin-grid" id="skinGrid"></div>
+
+        <button class="start-btn" id="startBtn">🚀 點擊立即開跑</button>
+      </div>
+
+      <!-- QR Code Overlay for Mobile Connection -->
+      <div class="overlay hidden" id="qrOverlay">
+        <div class="game-title">📱 用手機掃描立即玩</div>
+        <p class="game-sub">
+          已部署至 <b>GitHub Pages</b>！手機不限網路（4G / 5G / Wi-Fi）直接用相機掃描下方 QR Code 即可暢玩：
+        </p>
+        <div class="qr-box">
+          <img
+            id="qrImg"
+            alt="QR Code"
+            width="180"
+            height="180"
+            src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=https://hsienstyle.github.io/neon-runner-game/"
+          />
+        </div>
+        <div class="url-badge" id="lanUrlText">https://hsienstyle.github.io/neon-runner-game/</div>
+        <p class="game-sub" style="font-size: 0.78rem;">
+          💡 掃描打開後，可點選瀏覽器選單「加入主畫面」變身獨立手機 APP！
+        </p>
+        <button class="start-btn" id="qrCloseBtn">返回遊戲</button>
+      </div>
+    </div>
+
+    <!-- Mobile Thumb Controls (Left: Slide & Dash, Right: Big Jump) -->
+    <div class="controls-bar">
+      <button class="ctrl-btn slide" id="btnSlide">
+        <span>⬇️ 滑行蹲下</span>
+        <span class="ctrl-hint">按住不放 / 下滑</span>
+      </button>
+      <button class="ctrl-btn dash" id="btnDash">
+        <span>⚡ 無敵衝刺</span>
+        <span class="ctrl-hint">撞碎障礙 / 右滑</span>
+      </button>
+      <button class="ctrl-btn jump" id="btnJump">
+        <span>⬆️ 跳躍 / 二段跳</span>
+        <span class="ctrl-hint">大拇指連按可二段跳</span>
+      </button>
+    </div>
+  </div>
+
+  <script>
+    // ====== Web Audio Synthesizer ======
+    let soundOn = true;
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    let audioCtx = null;
+
+    function playTone(freq, type = "sine", dur = 0.12, vol = 0.15, slideFreq = null) {
+      if (!soundOn) return;
+      if (!audioCtx) audioCtx = new AudioCtx();
+      if (audioCtx.state === "suspended") audioCtx.resume();
+
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = type;
+      osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+      if (slideFreq) {
+        osc.frequency.exponentialRampToValueAtTime(slideFreq, audioCtx.currentTime + dur);
+      }
+      gain.gain.setValueAtTime(vol, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + dur);
+
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start();
+      osc.stop(audioCtx.currentTime + dur);
+    }
+
+    function sfx(name) {
+      if (!soundOn) return;
+      if (name === "jump") playTone(320, "triangle", 0.14, 0.18, 620);
+      else if (name === "doubleJump") playTone(480, "sine", 0.16, 0.2, 880);
+      else if (name === "dash") playTone(180, "sawtooth", 0.18, 0.2, 600);
+      else if (name === "coin") {
+        playTone(987.77, "sine", 0.08, 0.15);
+        setTimeout(() => playTone(1318.5, "sine", 0.12, 0.15), 60);
+      } else if (name === "powerup") {
+        [523, 659, 784, 1046].forEach((f, i) => setTimeout(() => playTone(f, "triangle", 0.12, 0.18), i * 65));
+      } else if (name === "shieldBreak") {
+        playTone(300, "square", 0.25, 0.25, 90);
+      } else if (name === "hit") {
+        playTone(140, "sawtooth", 0.4, 0.3, 45);
+      }
+    }
+
+    // ====== Skins & Persistent Data ======
+    const SKINS = [
+      { id: "ninja", name: "賽博忍者", emoji: "🥷", color: "#22d3ee", cost: 0 },
+      { id: "cat", name: "機械喵喵", emoji: "🐱", color: "#f472b6", cost: 30 },
+      { id: "dragon", name: "烈焰魔龍", emoji: "🐲", color: "#f59e0b", cost: 80 },
+      { id: "king", name: "星際國王", emoji: "👑", color: "#a855f7", cost: 150 }
+    ];
+
+    let totalCoins = Number(localStorage.getItem("neonRunnerCoins") || 0);
+    let bestScore = Number(localStorage.getItem("neonRunnerBest") || 0);
+    let unlockedSkins = JSON.parse(localStorage.getItem("neonRunnerSkins") || '["ninja"]');
+    let currentSkinId = localStorage.getItem("neonRunnerSelectedSkin") || "ninja";
+
+    const scoreText = document.getElementById("scoreText");
+    const bestText = document.getElementById("bestText");
+    const coinsText = document.getElementById("coinsText");
+    const menuOverlay = document.getElementById("menuOverlay");
+    const qrOverlay = document.getElementById("qrOverlay");
+    const overlayTitle = document.getElementById("overlayTitle");
+    const overlayDesc = document.getElementById("overlayDesc");
+    const skinGrid = document.getElementById("skinGrid");
+    const startBtn = document.getElementById("startBtn");
+    const buffBar = document.getElementById("buffBar");
+    const pauseBtn = document.getElementById("pauseBtn");
+    const soundBtn = document.getElementById("soundBtn");
+    const qrOpenBtn = document.getElementById("qrOpenBtn");
+    const qrCloseBtn = document.getElementById("qrCloseBtn");
+
+    function updateHUD() {
+      bestText.textContent = Math.floor(bestScore);
+      coinsText.textContent = totalCoins;
+    }
+
+    function renderSkinShop() {
+      skinGrid.innerHTML = "";
+      SKINS.forEach((s) => {
+        const isUnlocked = unlockedSkins.includes(s.id);
+        const isSelected = currentSkinId === s.id;
+        const card = document.createElement("div");
+        card.className = `skin-card ${isSelected ? "selected" : ""}`;
+        card.innerHTML = `
+          <div class="skin-emoji">${s.emoji}</div>
+          <div class="skin-name">${s.name}</div>
+          <div class="skin-cost">${isUnlocked ? (isSelected ? "✅ 使用中" : "點擊切換") : `🪙 ${s.cost} 解鎖`}</div>
+        `;
+        card.addEventListener("click", () => {
+          if (isUnlocked) {
+            currentSkinId = s.id;
+            localStorage.setItem("neonRunnerSelectedSkin", currentSkinId);
+            sfx("coin");
+            renderSkinShop();
+          } else if (totalCoins >= s.cost) {
+            totalCoins -= s.cost;
+            unlockedSkins.push(s.id);
+            currentSkinId = s.id;
+            localStorage.setItem("neonRunnerCoins", totalCoins);
+            localStorage.setItem("neonRunnerSkins", JSON.stringify(unlockedSkins));
+            localStorage.setItem("neonRunnerSelectedSkin", currentSkinId);
+            sfx("powerup");
+            updateHUD();
+            renderSkinShop();
+          } else {
+            overlayDesc.innerHTML = `<span style="color:#f87171;">⚠️ 金幣不足！還差 ${s.cost - totalCoins} 枚金幣就能解鎖【${s.name}】！</span>`;
+          }
+        });
+        skinGrid.appendChild(card);
+      });
+    }
+
+    // ====== Game Engine ======
+    const canvas = document.getElementById("gameCanvas");
+    const ctx = canvas.getContext("2d");
+    const GROUND_Y = 390;
+
+    let isRunning = false;
+    let isPaused = false;
+    let distance = 0;
+    let speed = 6.5;
+    let frameCount = 0;
+    let shakeFrames = 0;
+
+    const player = {
+      x: 110,
+      y: GROUND_Y - 52,
+      w: 46,
+      h: 52,
+      vy: 0,
+      gravity: 0.72,
+      jumpCount: 0,
+      maxJumps: 2,
+      isSliding: false,
+      dashTimer: 0,
+      dashCooldown: 0,
+      shield: false,
+      magnetTimer: 0,
+      jetpackTimer: 0
+    };
+
+    let obstacles = [];
+    let platforms = [];
+    let coins = [];
+    let powerups = [];
+    let particles = [];
+    let bgBuildings = [];
+
+    for (let i = 0; i < 18; i++) {
+      bgBuildings.push({
+        x: i * 65,
+        w: 45 + Math.random() * 35,
+        h: 90 + Math.random() * 170,
+        layer: i % 2 === 0 ? 1 : 2
+      });
+    }
+
+    function getSkin() {
+      return SKINS.find((s) => s.id === currentSkinId) || SKINS[0];
+    }
+
+    function spawnParticles(x, y, color, count = 12) {
+      for (let i = 0; i < count; i++) {
+        particles.push({
+          x,
+          y,
+          vx: (Math.random() - 0.5) * 8 - 2,
+          vy: (Math.random() - 0.5) * 8,
+          size: Math.random() * 5 + 3,
+          color,
+          alpha: 1
+        });
+      }
+    }
+
+    function resetGame() {
+      distance = 0;
+      speed = 6.5;
+      frameCount = 0;
+      shakeFrames = 0;
+
+      player.y = GROUND_Y - 52;
+      player.h = 52;
+      player.vy = 0;
+      player.jumpCount = 0;
+      player.isSliding = false;
+      player.dashTimer = 0;
+      player.dashCooldown = 0;
+      player.shield = false;
+      player.magnetTimer = 0;
+      player.jetpackTimer = 0;
+
+      obstacles = [];
+      platforms = [];
+      coins = [];
+      powerups = [];
+      particles = [];
+      isRunning = true;
+      isPaused = false;
+      menuOverlay.classList.add("hidden");
+      qrOverlay.classList.add("hidden");
+    }
+
+    function doJump() {
+      if (!isRunning || isPaused) return;
+      if (player.isSliding) setSlide(false);
+
+      if (player.jumpCount < player.maxJumps) {
+        player.vy = player.jumpCount === 0 ? -14.2 : -12.6;
+        player.jumpCount++;
+        sfx(player.jumpCount === 1 ? "jump" : "doubleJump");
+        spawnParticles(player.x + player.w / 2, player.y + player.h, getSkin().color, 10);
+      }
+    }
+
+    function setSlide(sliding) {
+      if (!isRunning || isPaused) return;
+      if (sliding && !player.isSliding) {
+        player.isSliding = true;
+        player.h = 30;
+        player.y += 22;
+        if (player.y + player.h < GROUND_Y) {
+          player.vy = 12;
+        }
+      } else if (!sliding && player.isSliding) {
+        player.isSliding = false;
+        player.y -= 22;
+        player.h = 52;
+      }
+    }
+
+    function doDash() {
+      if (!isRunning || isPaused) return;
+      if (player.dashCooldown <= 0 && player.dashTimer <= 0) {
+        player.dashTimer = 18;
+        player.dashCooldown = 90;
+        player.vy = 0;
+        sfx("dash");
+        spawnParticles(player.x, player.y + player.h / 2, "#ec4899", 18);
+      }
+    }
+
+    function spawnWorldEntities() {
+      if (frameCount % 95 === 0 && Math.random() < 0.65) {
+        const pw = 130 + Math.random() * 80;
+        const py = GROUND_Y - (105 + Math.random() * 65);
+        platforms.push({ x: canvas.width + 40, y: py, w: pw, h: 16 });
+
+        for (let i = 0; i < 4; i++) {
+          coins.push({ x: canvas.width + 60 + i * 32, y: py - 32, r: 11 });
+        }
+      }
+
+      if (frameCount % 75 === 0) {
+        const arcY = Math.random() < 0.5 ? GROUND_Y - 30 : GROUND_Y - 110;
+        for (let i = 0; i < 5; i++) {
+          coins.push({
+            x: canvas.width + 30 + i * 30,
+            y: arcY - Math.sin((i / 4) * Math.PI) * 35,
+            r: 11
+          });
+        }
+      }
+
+      const spawnInterval = Math.max(48, Math.floor(95 - speed * 2.5));
+      if (frameCount % spawnInterval === 0) {
+        const roll = Math.random();
+        if (roll < 0.45) {
+          obstacles.push({ type: "spike", x: canvas.width + 20, y: GROUND_Y - 46, w: 36, h: 46 });
+        } else if (roll < 0.78) {
+          obstacles.push({ type: "drone", x: canvas.width + 20, y: GROUND_Y - 82, w: 48, h: 34 });
+        } else {
+          obstacles.push({ type: "wall", x: canvas.width + 20, y: GROUND_Y - 68, w: 42, h: 68 });
+        }
+      }
+
+      if (frameCount % 310 === 0) {
+        const types = ["shield", "magnet", "jetpack"];
+        const chosen = types[Math.floor(Math.random() * types.length)];
+        powerups.push({ type: chosen, x: canvas.width + 30, y: GROUND_Y - 125, w: 34, h: 34 });
+      }
+    }
+
+    function rectIntersect(a, b) {
+      return a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y;
+    }
+
+    function updateBuffUI() {
+      const tags = [];
+      if (player.shield) tags.push(`<span class="buff-tag">🛡️ 護盾</span>`);
+      if (player.magnetTimer > 0) tags.push(`<span class="buff-tag">🧲 ${Math.ceil(player.magnetTimer / 60)}s</span>`);
+      if (player.jetpackTimer > 0) tags.push(`<span class="buff-tag">🚀 ${Math.ceil(player.jetpackTimer / 60)}s</span>`);
+      if (player.dashCooldown > 0) {
+        tags.push(`<span class="buff-tag" style="border-color:#64748b;opacity:0.75;">⚡ ${(player.dashCooldown / 60).toFixed(1)}s</span>`);
+      } else {
+        tags.push(`<span class="buff-tag" style="border-color:#ec4899;">⚡ 衝刺就緒</span>`);
+      }
+      buffBar.innerHTML = tags.join("");
+    }
+
+    function updateGame() {
+      frameCount++;
+      const effectiveSpeed = player.jetpackTimer > 0 ? speed * 1.85 : player.dashTimer > 0 ? speed * 1.6 : speed;
+      distance += effectiveSpeed * 0.08;
+      speed = Math.min(13.5, 6.5 + distance * 0.0045);
+
+      scoreText.textContent = Math.floor(distance);
+
+      if (player.dashTimer > 0) player.dashTimer--;
+      if (player.dashCooldown > 0) player.dashCooldown--;
+      if (player.magnetTimer > 0) player.magnetTimer--;
+      if (player.jetpackTimer > 0) player.jetpackTimer--;
+
+      const prevBottom = player.y + player.h;
+      if (player.jetpackTimer > 0) {
+        player.y += (110 - player.y) * 0.12;
+        player.vy = 0;
+        spawnParticles(player.x, player.y + player.h / 2, "#f59e0b", 2);
+      } else if (player.dashTimer > 0) {
+        player.vy = 0;
+        spawnParticles(player.x, player.y + player.h / 2, "#ec4899", 2);
+      } else {
+        player.vy += player.gravity;
+        player.y += player.vy;
+      }
+
+      let landed = false;
+      platforms.forEach((p) => {
+        if (
+          player.vy >= 0 &&
+          player.x + player.w > p.x + 6 &&
+          player.x < p.x + p.w - 6 &&
+          prevBottom <= p.y + 10 &&
+          player.y + player.h >= p.y
+        ) {
+          player.y = p.y - player.h;
+          player.vy = 0;
+          player.jumpCount = 0;
+          landed = true;
+        }
+      });
+
+      if (!landed && player.y + player.h >= GROUND_Y) {
+        player.y = GROUND_Y - player.h;
+        player.vy = 0;
+        player.jumpCount = 0;
+      }
+
+      spawnWorldEntities();
+
+      bgBuildings.forEach((b) => {
+        b.x -= effectiveSpeed * (b.layer === 1 ? 0.25 : 0.45);
+        if (b.x + b.w < 0) {
+          b.x = canvas.width + 20;
+          b.h = 90 + Math.random() * 170;
+        }
+      });
+
+      platforms.forEach((p) => (p.x -= effectiveSpeed));
+      platforms = platforms.filter((p) => p.x + p.w > -20);
+
+      coins.forEach((c) => {
+        c.x -= effectiveSpeed;
+        if (player.magnetTimer > 0) {
+          const dx = player.x + player.w / 2 - c.x;
+          const dy = player.y + player.h / 2 - c.y;
+          const dist = Math.hypot(dx, dy);
+          if (dist < 260) {
+            c.x += (dx / dist) * 11;
+            c.y += (dy / dist) * 11;
+          }
+        }
+      });
+
+      coins = coins.filter((c) => {
+        const hit =
+          c.x + c.r > player.x &&
+          c.x - c.r < player.x + player.w &&
+          c.y + c.r > player.y &&
+          c.y - c.r < player.y + player.h;
+        if (hit) {
+          totalCoins++;
+          localStorage.setItem("neonRunnerCoins", totalCoins);
+          coinsText.textContent = totalCoins;
+          sfx("coin");
+          spawnParticles(c.x, c.y, "#fbbf24", 6);
+          return false;
+        }
+        return c.x > -30;
+      });
+
+      powerups.forEach((pw) => (pw.x -= effectiveSpeed));
+      powerups = powerups.filter((pw) => {
+        if (rectIntersect(player, pw)) {
+          sfx("powerup");
+          spawnParticles(pw.x, pw.y, "#38bdf8", 16);
+          if (pw.type === "shield") player.shield = true;
+          if (pw.type === "magnet") player.magnetTimer = 420;
+          if (pw.type === "jetpack") player.jetpackTimer = 260;
+          return false;
+        }
+        return pw.x > -40;
+      });
+
+      obstacles.forEach((ob) => (ob.x -= effectiveSpeed));
+      obstacles = obstacles.filter((ob) => {
+        const hitbox = { x: player.x + 6, y: player.y + 5, w: player.w - 12, h: player.h - 10 };
+        if (rectIntersect(hitbox, ob)) {
+          if (player.jetpackTimer > 0 || player.dashTimer > 0) {
+            sfx("shieldBreak");
+            spawnParticles(ob.x + ob.w / 2, ob.y + ob.h / 2, "#f43f5e", 18);
+            return false;
+          } else if (player.shield) {
+            player.shield = false;
+            shakeFrames = 12;
+            sfx("shieldBreak");
+            spawnParticles(ob.x + ob.w / 2, ob.y + ob.h / 2, "#38bdf8", 22);
+            return false;
+          } else {
+            triggerGameOver();
+            return false;
+          }
+        }
+        return ob.x + ob.w > -40;
+      });
+
+      particles.forEach((pt) => {
+        pt.x += pt.vx;
+        pt.y += pt.vy;
+        pt.alpha -= 0.03;
+      });
+      particles = particles.filter((pt) => pt.alpha > 0);
+
+      if (frameCount % 6 === 0) updateBuffUI();
+    }
+
+    function triggerGameOver() {
+      isRunning = false;
+      sfx("hit");
+      shakeFrames = 18;
+      if (distance > bestScore) {
+        bestScore = Math.floor(distance);
+        localStorage.setItem("neonRunnerBest", bestScore);
+      }
+      updateHUD();
+      renderSkinShop();
+      overlayTitle.textContent = `💥 跑了 ${Math.floor(distance)} 公尺`;
+      overlayDesc.innerHTML = `最高紀錄：<b>${Math.floor(bestScore)} m</b> ｜ 累積金幣：<b>🪙 ${totalCoins}</b><br/>點選下方可切換角色，再跑一局！`;
+      startBtn.textContent = "🔄 再跑一局";
+      menuOverlay.classList.remove("hidden");
+    }
+
+    function drawGame() {
+      ctx.save();
+      if (shakeFrames > 0) {
+        shakeFrames--;
+        ctx.translate((Math.random() - 0.5) * 10, (Math.random() - 0.5) * 10);
+      }
+
+      const grad = ctx.createLinearGradient(0, 0, 0, canvas.height);
+      grad.addColorStop(0, "#090d16");
+      grad.addColorStop(1, "#1e1b4b");
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      bgBuildings.forEach((b) => {
+        ctx.fillStyle = b.layer === 1 ? "rgba(30, 41, 59, 0.55)" : "rgba(51, 65, 85, 0.65)";
+        ctx.fillRect(b.x, GROUND_Y - b.h, b.w, b.h);
+      });
+
+      ctx.fillStyle = "#0f172a";
+      ctx.fillRect(0, GROUND_Y, canvas.width, canvas.height - GROUND_Y);
+      ctx.strokeStyle = "#06b6d4";
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.moveTo(0, GROUND_Y);
+      ctx.lineTo(canvas.width, GROUND_Y);
+      ctx.stroke();
+
+      ctx.strokeStyle = "rgba(6, 182, 212, 0.25)";
+      ctx.lineWidth = 1.5;
+      const offset = (frameCount * speed) % 50;
+      for (let x = -offset; x < canvas.width; x += 50) {
+        ctx.beginPath();
+        ctx.moveTo(x, GROUND_Y);
+        ctx.lineTo(x - 35, canvas.height);
+        ctx.stroke();
+      }
+
+      platforms.forEach((p) => {
+        ctx.fillStyle = "#1e293b";
+        ctx.strokeStyle = "#a855f7";
+        ctx.lineWidth = 2.5;
+        ctx.fillRect(p.x, p.y, p.w, p.h);
+        ctx.strokeRect(p.x, p.y, p.w, p.h);
+      });
+
+      coins.forEach((c) => {
+        ctx.beginPath();
+        ctx.arc(c.x, c.y, c.r, 0, Math.PI * 2);
+        ctx.fillStyle = "#fbbf24";
+        ctx.fill();
+        ctx.strokeStyle = "#fef08a";
+        ctx.lineWidth = 2;
+        ctx.stroke();
+      });
+
+      ctx.font = "24px Segoe UI Emoji";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      powerups.forEach((pw) => {
+        ctx.fillStyle = "rgba(56, 189, 248, 0.22)";
+        ctx.beginPath();
+        ctx.arc(pw.x + pw.w / 2, pw.y + pw.h / 2, 22, 0, Math.PI * 2);
+        ctx.fill();
+        const icon = pw.type === "shield" ? "🛡️" : pw.type === "magnet" ? "🧲" : "🚀";
+        ctx.fillText(icon, pw.x + pw.w / 2, pw.y + pw.h / 2);
+      });
+
+      obstacles.forEach((ob) => {
+        if (ob.type === "spike") {
+          ctx.fillStyle = "#ef4444";
+          ctx.beginPath();
+          ctx.moveTo(ob.x, ob.y + ob.h);
+          ctx.lineTo(ob.x + ob.w / 2, ob.y);
+          ctx.lineTo(ob.x + ob.w, ob.y + ob.h);
+          ctx.closePath();
+          ctx.fill();
+        } else if (ob.type === "drone") {
+          ctx.fillStyle = "#f43f5e";
+          ctx.fillRect(ob.x, ob.y, ob.w, ob.h);
+          ctx.fillStyle = "#fff";
+          ctx.fillText("🛸", ob.x + ob.w / 2, ob.y + ob.h / 2);
+        } else {
+          ctx.fillStyle = "#dc2626";
+          ctx.strokeStyle = "#fca5a5";
+          ctx.lineWidth = 2;
+          ctx.fillRect(ob.x, ob.y, ob.w, ob.h);
+          ctx.strokeRect(ob.x, ob.y, ob.w, ob.h);
+        }
+      });
+
+      const skin = getSkin();
+      ctx.save();
+      ctx.fillStyle = skin.color;
+      ctx.shadowColor = skin.color;
+      ctx.shadowBlur = 16;
+      ctx.fillRect(player.x, player.y, player.w, player.h);
+      ctx.shadowBlur = 0;
+
+      ctx.font = player.isSliding ? "24px Segoe UI Emoji" : "30px Segoe UI Emoji";
+      ctx.fillText(skin.emoji, player.x + player.w / 2, player.y + player.h / 2 + 2);
+
+      if (player.shield) {
+        ctx.strokeStyle = "#38bdf8";
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.arc(player.x + player.w / 2, player.y + player.h / 2, 36, 0, Math.PI * 2);
+        ctx.stroke();
+      }
+      ctx.restore();
+
+      particles.forEach((pt) => {
+        ctx.globalAlpha = Math.max(0, pt.alpha);
+        ctx.fillStyle = pt.color;
+        ctx.fillRect(pt.x, pt.y, pt.size, pt.size);
+      });
+      ctx.globalAlpha = 1;
+
+      ctx.restore();
+    }
+
+    function loop() {
+      if (isRunning && !isPaused) {
+        updateGame();
+      }
+      drawGame();
+      requestAnimationFrame(loop);
+    }
+
+    // ====== Keyboard Bindings ======
+    window.addEventListener("keydown", (e) => {
+      if (e.code === "Space" || e.code === "ArrowUp" || e.code === "KeyW") {
+        e.preventDefault();
+        if (!isRunning) resetGame();
+        else doJump();
+      } else if (e.code === "ArrowDown" || e.code === "KeyS") {
+        e.preventDefault();
+        setSlide(true);
+      } else if (e.code === "ShiftLeft" || e.code === "ShiftRight" || e.code === "KeyD") {
+        e.preventDefault();
+        doDash();
+      } else if (e.code === "KeyP") {
+        if (isRunning) {
+          isPaused = !isPaused;
+          pauseBtn.textContent = isPaused ? "▶️" : "⏸️";
+        }
+      } else if (e.code === "Enter" && !isRunning) {
+        resetGame();
+      }
+    });
+
+    window.addEventListener("keyup", (e) => {
+      if (e.code === "ArrowDown" || e.code === "KeyS") setSlide(false);
+    });
+
+    // ====== Mobile Thumb Buttons ======
+    const btnJump = document.getElementById("btnJump");
+    const btnSlide = document.getElementById("btnSlide");
+    const btnDash = document.getElementById("btnDash");
+
+    btnJump.addEventListener("pointerdown", (e) => {
+      e.preventDefault();
+      doJump();
+    });
+    btnSlide.addEventListener("pointerdown", (e) => {
+      e.preventDefault();
+      setSlide(true);
+    });
+    btnSlide.addEventListener("pointerup", () => setSlide(false));
+    btnSlide.addEventListener("pointercancel", () => setSlide(false));
+    btnSlide.addEventListener("pointerleave", () => setSlide(false));
+    btnDash.addEventListener("pointerdown", (e) => {
+      e.preventDefault();
+      doDash();
+    });
+
+    // ====== Touch Swipe Gestures on Canvas ======
+    const touchZone = document.getElementById("touchZone");
+    let touchStartX = 0;
+    let touchStartY = 0;
+    let swiped = false;
+
+    touchZone.addEventListener("touchstart", (e) => {
+      if (!isRunning || isPaused) return;
+      touchStartX = e.touches[0].clientX;
+      touchStartY = e.touches[0].clientY;
+      swiped = false;
+    }, { passive: true });
+
+    touchZone.addEventListener("touchmove", (e) => {
+      if (!isRunning || isPaused || swiped) return;
+      const dx = e.touches[0].clientX - touchStartX;
+      const dy = e.touches[0].clientY - touchStartY;
+      if (dy > 35 && Math.abs(dy) > Math.abs(dx)) {
+        swiped = true;
+        setSlide(true);
+        setTimeout(() => setSlide(false), 550);
+      } else if (dx > 40 && Math.abs(dx) > Math.abs(dy)) {
+        swiped = true;
+        doDash();
+      }
+    }, { passive: true });
+
+    touchZone.addEventListener("touchend", () => {
+      if (!isRunning || isPaused) return;
+      if (!swiped) {
+        doJump();
+      }
+    }, { passive: true });
+
+    // ====== UI Buttons ======
+    startBtn.addEventListener("click", resetGame);
+    pauseBtn.addEventListener("click", () => {
+      if (!isRunning) return;
+      isPaused = !isPaused;
+      pauseBtn.textContent = isPaused ? "▶️" : "⏸️";
+    });
+    soundBtn.addEventListener("click", () => {
+      soundOn = !soundOn;
+      soundBtn.textContent = soundOn ? "🔊" : "🔇";
+    });
+
+    qrOpenBtn.addEventListener("click", () => {
+      isPaused = true;
+      const currentUrl = window.location.protocol.startsWith("http")
+        ? window.location.href
+        : "https://hsienstyle.github.io/neon-runner-game/";
+      document.getElementById("lanUrlText").textContent = currentUrl;
+      document.getElementById("qrImg").src =
+        "https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=" +
+        encodeURIComponent(currentUrl);
+      qrOverlay.classList.remove("hidden");
+    });
+    qrCloseBtn.addEventListener("click", () => {
+      qrOverlay.classList.add("hidden");
+      isPaused = false;
+    });
+
+    updateHUD();
+    renderSkinShop();
+    loop();
+  </script>
+</body>
+</html>
