@@ -379,10 +379,10 @@
 
       <!-- Main Menu / GameOver Overlay -->
       <div class="overlay" id="menuOverlay">
-        <div class="game-title" id="overlayTitle">⚡ 霓虹酷跑王</div>
+        <div class="game-title" id="overlayTitle">⚡ Alfie & Darren 單車酷跑</div>
         <p class="game-sub" id="overlayDesc">
-          支援<b>二段跳</b>、<b>滑行閃避無人機</b>與<b>無敵衝刺</b>！<br />
-          收集賽道上的 🪙 金幣解鎖角色，撿取 🛡️護盾、🧲磁鐵、🚀噴射背包衝破極限！
+          選擇 <b>🔴 Alfie（紅車）</b>、<b>🟢 Darren（綠車）</b> 或 <b>👬 雙人同屏戰隊</b>！<br />
+          支援二段跳、滑行閃避無人機與無敵衝刺，撿取 🛡️護盾、🧲磁鐵、🚀噴射背包衝破極限！
         </p>
 
         <div class="skin-grid" id="skinGrid"></div>
@@ -481,9 +481,9 @@
     imgHero2.src = "hero2.jpg";
 
     const SKINS = [
-      { id: "duo", name: "雙人兄弟戰隊", color: "#38bdf8", badge: "👬 兩人同屏" },
-      { id: "hero1", name: "紅車小騎士", color: "#ef4444", badge: "🔴 紅色戰車" },
-      { id: "hero2", name: "綠車小騎士", color: "#10b981", badge: "🟢 綠色戰車" },
+      { id: "duo", name: "Alfie & Darren", color: "#38bdf8", badge: "👬 雙人戰隊" },
+      { id: "hero1", name: "Alfie (紅車)", color: "#ef4444", badge: "🔴 紅色戰車" },
+      { id: "hero2", name: "Darren (綠車)", color: "#10b981", badge: "🟢 綠色戰車" },
       { id: "photo", name: "寫真原圖模式", color: "#f59e0b", badge: "📸 全身寫真" }
     ];
 
@@ -902,8 +902,14 @@
       }
       updateHUD();
       renderSkinShop();
-      overlayTitle.textContent = `💥 跑了 ${Math.floor(distance)} 公尺`;
-      overlayDesc.innerHTML = `最高紀錄：<b>${Math.floor(bestScore)} m</b> ｜ 累積金幣：<b>🪙 ${totalCoins}</b><br/>點選下方可切換角色，再跑一局！`;
+      const who =
+        currentSkinId === "hero1"
+          ? "Alfie"
+          : currentSkinId === "hero2"
+          ? "Darren"
+          : "Alfie & Darren";
+      overlayTitle.textContent = `🚴‍♂️ ${who} 騎了 ${Math.floor(distance)} 公尺！`;
+      overlayDesc.innerHTML = `最高紀錄：<b>${Math.floor(bestScore)} m</b> ｜ 累積金幣：<b>🪙 ${totalCoins}</b><br/>點選下方頭像可切換 <b>Alfie</b> 或 <b>Darren</b>，再來一局！`;
       startBtn.textContent = "🔄 再跑一局";
       menuOverlay.classList.remove("hidden");
     }
@@ -1127,6 +1133,24 @@
           }
         }
         ctx.restore();
+
+        // 5. Floating Name Badge (Alfie / Darren)
+        const riderName = isHero1 ? "Alfie" : "Darren";
+        ctx.save();
+        ctx.font = "bold 11px 'Segoe UI', sans-serif";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillStyle = "rgba(15, 23, 42, 0.85)";
+        ctx.strokeStyle = bikeColor;
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.roundRect(headX - 22, headY - headR - 17, 44, 14, 7);
+        ctx.fill();
+        ctx.stroke();
+        ctx.fillStyle = "#ffffff";
+        ctx.fillText(riderName, headX, headY - headR - 10);
+        ctx.restore();
+
         ctx.restore();
       }
 
