@@ -1719,7 +1719,8 @@
               ? "dragon"
               : "pika"
             : currentPokeId;
-        drawPokeCompanion(26, -34, partnerToDraw);
+        // Runs low in front of the bike so it never covers the rider's face
+        drawPokeCompanion(46, -16, partnerToDraw);
 
         ctx.restore();
       }
@@ -1731,7 +1732,7 @@
       if (currentSkinId === "duo") {
         // Draw Brother 2 following right behind Brother 1!
         const companionJumpOffset = (GROUND_Y - bottomY) * 0.85;
-        drawRider(centerX - 48, GROUND_Y - companionJumpOffset, 2, player.isSliding, 0.92);
+        drawRider(centerX - 64, GROUND_Y - companionJumpOffset, 2, player.isSliding, 0.92);
         drawRider(centerX + 4, bottomY, 1, player.isSliding, 1.0);
       } else if (currentSkinId === "hero2") {
         drawRider(centerX, bottomY, 2, player.isSliding, 1.05);
