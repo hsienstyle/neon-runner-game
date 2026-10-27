@@ -227,17 +227,42 @@
       border-radius: 14px;
       padding: 8px 4px;
       cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
     }
 
     .skin-card.selected {
       border-color: #22d3ee;
-      background: rgba(6, 182, 212, 0.15);
-      box-shadow: 0 0 15px rgba(6, 182, 212, 0.35);
+      background: rgba(6, 182, 212, 0.18);
+      box-shadow: 0 0 15px rgba(6, 182, 212, 0.45);
     }
 
-    .skin-emoji { font-size: 1.6rem; margin-bottom: 2px; }
-    .skin-name { font-size: 0.74rem; font-weight: 800; color: #f8fafc; }
-    .skin-cost { font-size: 0.66rem; color: #fbbf24; font-weight: 700; margin-top: 2px; }
+    .skin-avatar-wrap {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 52px;
+      margin-bottom: 5px;
+    }
+
+    .skin-thumb {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      border: 2px solid #38bdf8;
+      object-fit: cover;
+      background: #0f172a;
+    }
+
+    .skin-thumb.duo-thumb {
+      width: 38px;
+      height: 38px;
+      margin: 0 -5px;
+    }
+
+    .skin-name { font-size: 0.75rem; font-weight: 800; color: #f8fafc; }
+    .skin-cost { font-size: 0.66rem; color: #38bdf8; font-weight: 700; margin-top: 2px; }
 
     .start-btn {
       background: linear-gradient(135deg, #06b6d4, #6366f1, #ec4899);
@@ -449,18 +474,22 @@
       }
     }
 
-    // ====== Skins & Persistent Data ======
+    // ====== Hero Photos & Skins ======
+    const imgHero1 = new Image();
+    imgHero1.src = "hero1.jpg";
+    const imgHero2 = new Image();
+    imgHero2.src = "hero2.jpg";
+
     const SKINS = [
-      { id: "ninja", name: "賽博忍者", emoji: "🥷", color: "#22d3ee", cost: 0 },
-      { id: "cat", name: "機械喵喵", emoji: "🐱", color: "#f472b6", cost: 30 },
-      { id: "dragon", name: "烈焰魔龍", emoji: "🐲", color: "#f59e0b", cost: 80 },
-      { id: "king", name: "星際國王", emoji: "👑", color: "#a855f7", cost: 150 }
+      { id: "duo", name: "雙人兄弟戰隊", color: "#38bdf8", badge: "👬 兩人同屏" },
+      { id: "hero1", name: "紅車小騎士", color: "#ef4444", badge: "🔴 紅色戰車" },
+      { id: "hero2", name: "綠車小騎士", color: "#10b981", badge: "🟢 綠色戰車" },
+      { id: "photo", name: "寫真原圖模式", color: "#f59e0b", badge: "📸 全身寫真" }
     ];
 
     let totalCoins = Number(localStorage.getItem("neonRunnerCoins") || 0);
     let bestScore = Number(localStorage.getItem("neonRunnerBest") || 0);
-    let unlockedSkins = JSON.parse(localStorage.getItem("neonRunnerSkins") || '["ninja"]');
-    let currentSkinId = localStorage.getItem("neonRunnerSelectedSkin") || "ninja";
+    let currentSkinId = localStorage.getItem("neonRunnerHeroMode") || "duo";
 
     const scoreText = document.getElementById("scoreText");
     const bestText = document.getElementById("bestText");
@@ -485,34 +514,42 @@
     function renderSkinShop() {
       skinGrid.innerHTML = "";
       SKINS.forEach((s) => {
-        const isUnlocked = unlockedSkins.includes(s.id);
         const isSelected = currentSkinId === s.id;
         const card = document.createElement("div");
         card.className = `skin-card ${isSelected ? "selected" : ""}`;
+
+        let avatarHTML = "";
+        if (s.id === "duo" || s.id === "photo") {
+          avatarHTML = `
+            <div class="skin-avatar-wrap">
+              <img class="skin-thumb duo-thumb" src="hero1.jpg" style="object-position: 49% 25%; border-color:#ef4444;" />
+              <img class="skin-thumb duo-thumb" src="hero2.jpg" style="object-position: 51% 15%; border-color:#10b981;" />
+            </div>
+          `;
+        } else if (s.id === "hero1") {
+          avatarHTML = `
+            <div class="skin-avatar-wrap">
+              <img class="skin-thumb" src="hero1.jpg" style="object-position: 49% 25%; border-color:#ef4444;" />
+            </div>
+          `;
+        } else {
+          avatarHTML = `
+            <div class="skin-avatar-wrap">
+              <img class="skin-thumb" src="hero2.jpg" style="object-position: 51% 15%; border-color:#10b981;" />
+            </div>
+          `;
+        }
+
         card.innerHTML = `
-          <div class="skin-emoji">${s.emoji}</div>
+          ${avatarHTML}
           <div class="skin-name">${s.name}</div>
-          <div class="skin-cost">${isUnlocked ? (isSelected ? "✅ 使用中" : "點擊切換") : `🪙 ${s.cost} 解鎖`}</div>
+          <div class="skin-cost">${isSelected ? "✅ 出戰中" : s.badge}</div>
         `;
         card.addEventListener("click", () => {
-          if (isUnlocked) {
-            currentSkinId = s.id;
-            localStorage.setItem("neonRunnerSelectedSkin", currentSkinId);
-            sfx("coin");
-            renderSkinShop();
-          } else if (totalCoins >= s.cost) {
-            totalCoins -= s.cost;
-            unlockedSkins.push(s.id);
-            currentSkinId = s.id;
-            localStorage.setItem("neonRunnerCoins", totalCoins);
-            localStorage.setItem("neonRunnerSkins", JSON.stringify(unlockedSkins));
-            localStorage.setItem("neonRunnerSelectedSkin", currentSkinId);
-            sfx("powerup");
-            updateHUD();
-            renderSkinShop();
-          } else {
-            overlayDesc.innerHTML = `<span style="color:#f87171;">⚠️ 金幣不足！還差 ${s.cost - totalCoins} 枚金幣就能解鎖【${s.name}】！</span>`;
-          }
+          currentSkinId = s.id;
+          localStorage.setItem("neonRunnerHeroMode", currentSkinId);
+          sfx("coin");
+          renderSkinShop();
         });
         skinGrid.appendChild(card);
       });
@@ -552,7 +589,7 @@
       if (rect.width > 0 && rect.height > 0) {
         canvas.height = 460;
         canvas.width = Math.max(340, Math.round(460 * (rect.width / rect.height)));
-        player.x = Math.min(95, Math.max(38, Math.round(canvas.width * 0.14)));
+        player.x = Math.min(115, Math.max(72, Math.round(canvas.width * 0.22)));
       }
     }
     window.addEventListener("resize", syncCanvasAspect);
@@ -961,30 +998,160 @@
         }
       });
 
-      const skin = getSkin();
-      ctx.save();
-      ctx.fillStyle = skin.color;
-      ctx.shadowColor = skin.color;
-      ctx.shadowBlur = 16;
-      ctx.fillRect(player.x, player.y, player.w, player.h);
-      ctx.shadowBlur = 0;
-      ctx.strokeStyle = "#ffffff";
-      ctx.lineWidth = 2.5;
-      ctx.strokeRect(player.x, player.y, player.w, player.h);
+      function drawRider(rx, bottomY, whichHero, sliding, scale = 1) {
+        const isHero1 = whichHero === 1;
+        const img = isHero1 ? imgHero1 : imgHero2;
+        const bikeColor = isHero1 ? "#ef4444" : "#34d399";
+        const pantsColor = isHero1 ? "#2563eb" : "#1e293b";
+        const wheelAngle = (frameCount * speed * 0.12) % (Math.PI * 2);
 
-      ctx.font = player.isSliding
-        ? "24px 'Apple Color Emoji', 'Segoe UI Emoji', 'Noto Color Emoji', sans-serif"
-        : "30px 'Apple Color Emoji', 'Segoe UI Emoji', 'Noto Color Emoji', sans-serif";
-      ctx.fillText(skin.emoji, player.x + player.w / 2, player.y + player.h / 2 + 2);
+        ctx.save();
+        ctx.translate(rx, bottomY);
+        ctx.scale(scale, sliding ? scale * 0.68 : scale);
+
+        if (currentSkinId === "photo" && img.complete && img.naturalWidth > 0) {
+          // Full Photo Cutout Mode
+          const sx = isHero1 ? 295 : 305;
+          const sy = isHero1 ? 125 : 48;
+          const sw = isHero1 ? 425 : 455;
+          const sh = isHero1 ? 485 : 582;
+          ctx.save();
+          ctx.shadowColor = bikeColor;
+          ctx.shadowBlur = 14;
+          ctx.strokeStyle = bikeColor;
+          ctx.lineWidth = 3;
+          ctx.beginPath();
+          ctx.roundRect(-30, -68, 62, 66, 12);
+          ctx.stroke();
+          ctx.clip();
+          ctx.drawImage(img, sx, sy, sw, sh, -30, -68, 62, 66);
+          ctx.restore();
+          ctx.restore();
+          return;
+        }
+
+        // 1. Rear & Front Bicycle Wheels
+        const wheelPositions = [-16, 16];
+        wheelPositions.forEach((wx) => {
+          ctx.save();
+          ctx.translate(wx, -10);
+          ctx.rotate(wheelAngle);
+          ctx.beginPath();
+          ctx.arc(0, 0, 9.5, 0, Math.PI * 2);
+          ctx.lineWidth = 3.2;
+          ctx.strokeStyle = "#0f172a";
+          ctx.stroke();
+          ctx.lineWidth = 1.6;
+          ctx.strokeStyle = "#cbd5e1";
+          ctx.stroke();
+          // Spokes
+          for (let s = 0; s < 4; s++) {
+            ctx.beginPath();
+            ctx.moveTo(-8, 0);
+            ctx.lineTo(8, 0);
+            ctx.stroke();
+            ctx.rotate(Math.PI / 4);
+          }
+          ctx.restore();
+        });
+
+        // 2. Bicycle Frame (B'TWIN Red or Mint-Green)
+        ctx.strokeStyle = bikeColor;
+        ctx.lineWidth = 3.5;
+        ctx.lineCap = "round";
+        ctx.lineJoin = "round";
+        ctx.beginPath();
+        ctx.moveTo(-16, -10); // Rear axle
+        ctx.lineTo(-2, -10);  // Crank
+        ctx.lineTo(11, -24);  // Handlebar stem
+        ctx.lineTo(-7, -23);  // Seat post top
+        ctx.closePath();
+        ctx.stroke();
+
+        // Front fork & handlebar
+        ctx.beginPath();
+        ctx.moveTo(16, -10);
+        ctx.lineTo(10, -29);
+        ctx.lineTo(14, -30);
+        ctx.stroke();
+
+        // 3. Rider Legs & Patterned White Sweatshirt Torso
+        const pedalOffset = Math.sin(wheelAngle * 2) * 3.5;
+        ctx.strokeStyle = pantsColor;
+        ctx.lineWidth = 5;
+        ctx.beginPath();
+        ctx.moveTo(-7, -24);
+        ctx.lineTo(2, -16 + pedalOffset);
+        ctx.lineTo(-1, -8 + pedalOffset);
+        ctx.stroke();
+
+        // White patterned top
+        ctx.strokeStyle = "#f8fafc";
+        ctx.lineWidth = 7;
+        ctx.beginPath();
+        ctx.moveTo(-7, -25);
+        ctx.lineTo(2, -39);
+        ctx.stroke();
+
+        // Arms holding handlebar
+        ctx.strokeStyle = "#f1f5f9";
+        ctx.lineWidth = 4;
+        ctx.beginPath();
+        ctx.moveTo(2, -37);
+        ctx.lineTo(11, -29);
+        ctx.stroke();
+
+        // 4. Real Cropped Photo Head in Glowing Circle!
+        const bob = Math.sin(frameCount * 0.25) * 1.5;
+        const headX = 3;
+        const headY = -54 + bob;
+        const headR = 19;
+
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(headX, headY, headR, 0, Math.PI * 2);
+        ctx.shadowColor = bikeColor;
+        ctx.shadowBlur = 12;
+        ctx.fillStyle = "#1e293b";
+        ctx.fill();
+        ctx.lineWidth = 2.8;
+        ctx.strokeStyle = bikeColor;
+        ctx.stroke();
+        ctx.clip();
+
+        if (img.complete && img.naturalWidth > 0) {
+          if (isHero1) {
+            ctx.drawImage(img, 438, 125, 130, 130, headX - headR, headY - headR, headR * 2, headR * 2);
+          } else {
+            ctx.drawImage(img, 445, 48, 150, 150, headX - headR, headY - headR, headR * 2, headR * 2);
+          }
+        }
+        ctx.restore();
+        ctx.restore();
+      }
+
+      // Draw Player(s)
+      const centerX = player.x + player.w / 2;
+      const bottomY = player.y + player.h;
+
+      if (currentSkinId === "duo") {
+        // Draw Brother 2 following right behind Brother 1!
+        const companionJumpOffset = (GROUND_Y - bottomY) * 0.85;
+        drawRider(centerX - 48, GROUND_Y - companionJumpOffset, 2, player.isSliding, 0.92);
+        drawRider(centerX + 4, bottomY, 1, player.isSliding, 1.0);
+      } else if (currentSkinId === "hero2") {
+        drawRider(centerX, bottomY, 2, player.isSliding, 1.05);
+      } else {
+        drawRider(centerX, bottomY, 1, player.isSliding, 1.05);
+      }
 
       if (player.shield) {
         ctx.strokeStyle = "#38bdf8";
         ctx.lineWidth = 3;
         ctx.beginPath();
-        ctx.arc(player.x + player.w / 2, player.y + player.h / 2, 36, 0, Math.PI * 2);
+        ctx.arc(player.x + player.w / 2, player.y + player.h / 2 - 8, 42, 0, Math.PI * 2);
         ctx.stroke();
       }
-      ctx.restore();
 
       particles.forEach((pt) => {
         ctx.globalAlpha = Math.max(0, pt.alpha);
